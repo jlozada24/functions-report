@@ -1,0 +1,7 @@
+interface:
+  display_name: "Functions Report"
+  short_description: "Inventory callables and trace execution flows"
+  default_prompt: "Use $functions-report to inventory every callable in these source files and trace their primary execution and data flows."
+
+policy:
+  allow_implicit_invocation: false
