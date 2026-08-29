@@ -370,7 +370,8 @@ test("fragment wires native review navigation and the inline annotation editor",
   assert.match(fragment, /insertAdjacentElement\("afterend", form\)/);
   assert.match(fragment, /if \(disclosure\?\.matches\("details"\)\) disclosure\.open = true/);
   assert.match(fragment, /event\.key === "Escape"/);
-  assert.doesNotMatch(fragment, /\btabindex\s*=/i);
+  assert.match(fragment, /note\.tabIndex = -1/);
+  assert.doesNotMatch(fragment, /\.tabIndex\s*=\s*(?:0|[1-9])/);
   assert.doesNotMatch(
     fragment,
     /\b(?:localStorage|sessionStorage|window\.openai|sendFollowUpMessage)\b/,
@@ -400,7 +401,7 @@ test("a callable with hidden detail renders as an open native disclosure", () =>
   assert.match(fragment, /const disclosure = document\.createElement\("details"\)/);
   assert.match(fragment, /disclosure\.className = "fr-callable-disclosure"/);
   assert.match(fragment, /disclosure\.open = true/);
-  assert.match(fragment, /callableNode\.className = "fr-node fr-callable-node"/);
+  assert.match(fragment, /callableNode\.className = "fr-tree-row fr-node fr-callable-node"/);
   assert.match(fragment, /content\.className = "fr-callable-content"/);
   assert.match(fragment, /appendNote\(content, "", node\.description\)/);
   assert.match(fragment, /appendNote\(content, "Uses", node\.uses\)/);
@@ -489,6 +490,34 @@ test("visible-node traversal excludes descendants of every collapsed disclosure"
   assert.match(fragment, /if \(!form\.hidden && disclosure\.contains\(form\)\)/);
   assert.match(fragment, /setActiveNode\(summary\)/);
   assert.match(fragment, /summary\.focus\(\{ preventScroll: true \}\)/);
+});
+
+test("callable detail notes are bullet rows in visible keyboard traversal", () => {
+  const fragment = renderReport(
+    inputWith([
+      {
+        path: "/repo/src/request.ts",
+        callables: [
+          callable("send()", {
+            description: "Sends a request.",
+            uses: "The configured transport.",
+            updates: "Request metrics.",
+          }),
+        ],
+      },
+    ]),
+    template,
+  );
+
+  assert.match(fragment, /note\.className = "fr-tree-row fr-note"/);
+  assert.match(fragment, /note\.tabIndex = -1/);
+  assert.match(fragment, /note\.dataset\.navigationOnly = ""/);
+  assert.match(fragment, /note\.setAttribute\("role", "note"\)/);
+  assert.match(fragment, /\.fr-note::before[\s\S]*?content: "•"/);
+  assert.match(fragment, /querySelectorAll\("\.fr-tree-row"\)/);
+  assert.match(fragment, /event\.target\.closest\?\.\("\.fr-tree-row"\)/);
+  assert.match(fragment, /node\.matches\("\.fr-node"\)/);
+  assert.match(fragment, /event\.target\.closest\?\.\("\.fr-node"\)/);
 });
 
 test("nested hierarchy uses compact disclosure rows instead of stacked cards", () => {

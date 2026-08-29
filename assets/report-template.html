@@ -259,7 +259,7 @@
     border-inline-start: 1px solid color-mix(in srgb, var(--fr-nested-color) 45%, var(--fr-divider));
   }
 
-  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-node {
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-tree-row {
     min-inline-size: 0;
     max-inline-size: 100%;
     color: var(--fr-text);
@@ -267,7 +267,7 @@
     outline: none;
   }
 
-  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-node[aria-current="true"] {
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-tree-row[aria-current="true"] {
     box-shadow: 0 0 0 1px var(--fr-accent), 0 0 0 3px color-mix(in srgb, var(--fr-accent) 22%, transparent);
   }
 
@@ -440,6 +440,9 @@
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-note {
+    display: flex;
+    gap: 4px;
+    align-items: baseline;
     margin: 0 3px 2px 14px;
     padding: 1px 4px;
     color: var(--fr-muted);
@@ -448,6 +451,22 @@
     border-radius: 0;
     font-size: 11.5px;
     line-height: 1.45;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-note::before {
+    flex: 0 0 auto;
+    color: color-mix(in srgb, var(--fr-group-color, var(--fr-accent)) 78%, var(--fr-text));
+    font-size: 13px;
+    line-height: 1;
+    content: "•";
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-note-content {
+    min-inline-size: 0;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-note:hover {
+    background: color-mix(in srgb, var(--fr-accent) 7%, transparent);
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-note-label,
@@ -710,14 +729,21 @@
     const appendNote = (container, label, text) => {
       if (!text) return;
       const note = document.createElement("div");
-      note.className = "fr-note";
+      note.className = "fr-tree-row fr-note";
+      note.tabIndex = -1;
+      note.dataset.navigationOnly = "";
+      note.setAttribute("role", "note");
+      note.setAttribute("aria-label", label ? `${label}: ${text}` : text);
+      const noteContent = document.createElement("span");
+      noteContent.className = "fr-note-content";
       if (label) {
         const noteLabel = document.createElement("span");
         noteLabel.className = "fr-note-label";
         noteLabel.textContent = `${label}: `;
-        note.append(noteLabel);
+        noteContent.append(noteLabel);
       }
-      note.append(document.createTextNode(text));
+      noteContent.append(document.createTextNode(text));
+      note.append(noteContent);
       container.append(note);
     };
 
@@ -853,7 +879,7 @@
           details.open = true;
           details.addEventListener("toggle", reconcileCollapsedDisclosure);
           const summary = document.createElement("summary");
-          summary.className = "fr-node";
+          summary.className = "fr-tree-row fr-node";
           summary.dataset.nodeId = node.id;
           summary.dataset.annotationLabel = nodeLabel(node);
           summary.dataset.annotationBreadcrumb = node.breadcrumb;
@@ -875,7 +901,7 @@
           const hasDetails = Boolean(node.description || node.uses || node.updates);
           const callableNode = document.createElement(hasDetails ? "summary" : "button");
           if (!hasDetails) callableNode.type = "button";
-          callableNode.className = "fr-node fr-callable-node";
+          callableNode.className = "fr-tree-row fr-node fr-callable-node";
           callableNode.dataset.nodeId = node.id;
           callableNode.dataset.annotationLabel = nodeLabel(node);
           callableNode.dataset.annotationBreadcrumb = node.breadcrumb;
@@ -934,7 +960,7 @@
     };
 
     const visibleNodes = () =>
-      Array.from(root.querySelectorAll(".fr-node")).filter(isNodeVisible);
+      Array.from(root.querySelectorAll(".fr-tree-row")).filter(isNodeVisible);
 
     const moveActiveNode = (offset) => {
       const nodes = visibleNodes();
@@ -1074,13 +1100,18 @@
     if (firstNode) setActiveNode(firstNode);
 
     root.addEventListener("focusin", (event) => {
-      const node = event.target.closest?.(".fr-node");
+      const node = event.target.closest?.(".fr-tree-row");
       if (node && root.contains(node)) setActiveNode(node);
     });
 
     root.addEventListener("click", (event) => {
-      const node = event.target.closest?.(".fr-node");
-      if (node && root.contains(node)) setActiveNode(node);
+      const node = event.target.closest?.(".fr-tree-row");
+      if (node && root.contains(node)) {
+        setActiveNode(node);
+        if (node.dataset.navigationOnly !== undefined) {
+          node.focus({ preventScroll: true });
+        }
+      }
     });
 
     root.addEventListener("contextmenu", (event) => {
@@ -1106,7 +1137,7 @@
         void copyAnnotations();
         return;
       }
-      const node = event.target.closest?.(".fr-node");
+      const node = event.target.closest?.(".fr-tree-row");
       if (!node || !root.contains(node)) return;
       setActiveNode(node);
 
@@ -1136,7 +1167,10 @@
         }
         return;
       }
-      if (event.key === "Enter" || event.key === "Return") {
+      if (
+        node.matches(".fr-node") &&
+        (event.key === "Enter" || event.key === "Return")
+      ) {
         event.preventDefault();
         event.stopPropagation();
         openAnnotationEditor(node);
