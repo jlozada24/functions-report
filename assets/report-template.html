@@ -1,0 +1,667 @@
+<section
+  id="%%FUNCTIONS_REPORT_ROOT_ID%%"
+  class="functions-report"
+  aria-label="Functions outline"
+>
+  <div class="fr-copy-row">
+    <button
+      type="button"
+      class="fr-copy-button"
+      data-copy-annotations
+      aria-keyshortcuts="C"
+    >Copy annotations</button>
+    <span class="fr-copy-status" data-copy-status role="status" aria-live="polite"></span>
+  </div>
+  <div class="fr-tree" data-report-tree></div>
+  <script type="application/json" data-report-model>%%FUNCTIONS_REPORT_MODEL_JSON%%</script>
+
+  <form
+    class="fr-editor"
+    data-annotation-form
+    hidden
+    aria-labelledby="%%FUNCTIONS_REPORT_ROOT_ID%%-annotation-title"
+  >
+    <h2 id="%%FUNCTIONS_REPORT_ROOT_ID%%-annotation-title">Annotate node</h2>
+    <p class="fr-annotation-target" data-annotation-target></p>
+    <label for="%%FUNCTIONS_REPORT_ROOT_ID%%-annotation-text">Annotation</label>
+    <textarea
+      id="%%FUNCTIONS_REPORT_ROOT_ID%%-annotation-text"
+      data-annotation-text
+      rows="5"
+    ></textarea>
+    <div class="fr-editor-actions">
+      <button type="button" data-annotation-cancel aria-keyshortcuts="Escape">Cancel</button>
+      <button
+        type="button"
+        class="fr-save"
+        data-annotation-save
+        aria-keyshortcuts="Meta+Enter"
+      >Save</button>
+    </div>
+  </form>
+</section>
+
+<style>
+  #%%FUNCTIONS_REPORT_ROOT_ID%% {
+    box-sizing: border-box;
+    max-inline-size: 100%;
+    color: var(--foreground);
+    background: transparent;
+    font-size: var(--font-size-base);
+    overflow-wrap: anywhere;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% *,
+  #%%FUNCTIONS_REPORT_ROOT_ID%% *::before,
+  #%%FUNCTIONS_REPORT_ROOT_ID%% *::after {
+    box-sizing: inherit;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-copy-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin-block-end: 0.5rem;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-copy-button {
+    padding: 0.4rem 0.65rem;
+    color: var(--foreground);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 0.375rem;
+    font: inherit;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-copy-status {
+    color: var(--muted-foreground);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-copy-fallback {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    padding: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% details > .fr-list {
+    margin-inline-start: 0.55rem;
+    padding-inline-start: 0.85rem;
+    border-inline-start: 1px solid var(--border);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-node {
+    max-inline-size: 100%;
+    color: var(--foreground);
+    border-radius: 0.25rem;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-node[aria-current="true"] {
+    color: var(--accent-foreground);
+    background: var(--accent);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% summary.fr-node {
+    padding-block: 0.25rem;
+    padding-inline-end: 0.25rem;
+    cursor: pointer;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% summary.fr-node::marker {
+    color: var(--muted-foreground);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-node-label,
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-signature,
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-return {
+    font: inherit;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-callable {
+    position: relative;
+    margin-block: 0.15rem;
+    padding-inline-start: 0.85rem;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-callable::before {
+    position: absolute;
+    inset-block-start: 0.85rem;
+    inset-inline-start: 0.15rem;
+    inline-size: 0.35rem;
+    block-size: 1px;
+    background: var(--border);
+    content: "";
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% button.fr-callable-node {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 0.35rem;
+    align-items: baseline;
+    inline-size: auto;
+    max-inline-size: 100%;
+    margin: 0;
+    padding: 0.25rem;
+    color: var(--foreground);
+    text-align: start;
+    font: inherit;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% button.fr-callable-node[aria-current="true"] {
+    color: var(--accent-foreground);
+    background: var(--accent);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-return {
+    color: var(--muted-foreground);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-note {
+    margin-block-start: 0.15rem;
+    margin-inline-start: 0.75rem;
+    color: var(--foreground);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-note-label,
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-annotation-marker {
+    font-weight: 500;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-annotation-marker {
+    color: var(--muted-foreground);
+    white-space: nowrap;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-annotation-marker::before {
+    content: " · ";
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-editor {
+    display: grid;
+    gap: 0.65rem;
+    max-inline-size: 100%;
+    margin-block: 0.4rem 0.75rem;
+    margin-inline-start: 0.75rem;
+    padding-inline-start: 0.75rem;
+    color: var(--foreground);
+    background: transparent;
+    border-inline-start: 2px solid var(--border);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-editor[hidden] {
+    display: none;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-editor h2,
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-editor p {
+    margin: 0;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-annotation-target {
+    color: var(--muted-foreground);
+    overflow-wrap: anywhere;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-editor textarea {
+    inline-size: 100%;
+    min-block-size: 7rem;
+    padding: 0.6rem;
+    resize: vertical;
+    color: var(--foreground);
+    background: var(--background);
+    border: 1px solid var(--input);
+    border-radius: 0.375rem;
+    font: inherit;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-editor-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-editor-actions button {
+    padding: 0.45rem 0.75rem;
+    color: var(--foreground);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 0.375rem;
+    font: inherit;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-editor-actions .fr-save {
+    color: var(--primary-foreground);
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+
+  @media (max-width: 420px) {
+    #%%FUNCTIONS_REPORT_ROOT_ID%% details > .fr-list {
+      margin-inline-start: 0.25rem;
+      padding-inline-start: 0.55rem;
+    }
+
+    #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-callable {
+      padding-inline-start: 0.65rem;
+    }
+  }
+
+  @media (pointer: coarse) {
+    #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-copy-button,
+    #%%FUNCTIONS_REPORT_ROOT_ID%% summary.fr-node,
+    #%%FUNCTIONS_REPORT_ROOT_ID%% button.fr-callable-node {
+      min-block-size: 44px;
+      padding-block: 0.65rem;
+    }
+  }
+</style>
+
+<script>
+  (() => {
+    "use strict";
+
+    const root = document.getElementById("%%FUNCTIONS_REPORT_ROOT_ID%%");
+    if (!root) return;
+
+    const modelSource = root.querySelector("[data-report-model]");
+    const treeTarget = root.querySelector("[data-report-tree]");
+    const copyButton = root.querySelector("[data-copy-annotations]");
+    const copyStatus = root.querySelector("[data-copy-status]");
+    const form = root.querySelector("[data-annotation-form]");
+    const annotationTarget = root.querySelector("[data-annotation-target]");
+    const annotationText = root.querySelector("[data-annotation-text]");
+    const cancelButton = root.querySelector("[data-annotation-cancel]");
+    const saveButton = root.querySelector("[data-annotation-save]");
+    if (
+      !modelSource ||
+      !treeTarget ||
+      !copyButton ||
+      !copyStatus ||
+      !form ||
+      !annotationTarget ||
+      !annotationText ||
+      !cancelButton ||
+      !saveButton
+    ) {
+      return;
+    }
+
+    let model;
+    try {
+      model = JSON.parse(modelSource.textContent || "");
+    } catch {
+      treeTarget.textContent = "Unable to render the functions outline.";
+      treeTarget.setAttribute("role", "alert");
+      return;
+    }
+
+    const annotations = new Map();
+    let activeNode = null;
+    let editorNode = null;
+
+    const nodeLabel = (node) => {
+      if (node.kind === "folder") return `Folder ${node.label}`;
+      if (node.kind === "file") return `File ${node.label}`;
+      return `Callable ${node.signature}`;
+    };
+
+    const setNodeAccessibleLabel = (element) => {
+      const label = element.dataset.annotationLabel || "Report node";
+      const suffix = annotations.has(element.dataset.nodeId) ? ", annotated" : "";
+      element.setAttribute("aria-label", `${label}${suffix}`);
+    };
+
+    const setActiveNode = (element) => {
+      if (!element || element === activeNode) return;
+      if (activeNode) activeNode.removeAttribute("aria-current");
+      activeNode = element;
+      activeNode.setAttribute("aria-current", "true");
+    };
+
+    const addAnnotationMarker = (element) => {
+      const marker = document.createElement("span");
+      marker.className = "fr-annotation-marker";
+      marker.dataset.annotationMarker = "";
+      marker.textContent = "Annotated";
+      marker.hidden = true;
+      element.append(marker);
+    };
+
+    const appendNote = (container, label, text) => {
+      if (!text) return;
+      const note = document.createElement("div");
+      note.className = "fr-note";
+      if (label) {
+        const noteLabel = document.createElement("span");
+        noteLabel.className = "fr-note-label";
+        noteLabel.textContent = `${label}: `;
+        note.append(noteLabel);
+      }
+      note.append(document.createTextNode(text));
+      container.append(note);
+    };
+
+    const createList = (nodes) => {
+      const list = document.createElement("ul");
+      list.className = "fr-list";
+
+      for (const node of nodes) {
+        const item = document.createElement("li");
+
+        if (node.kind === "folder" || node.kind === "file") {
+          item.className = "fr-group";
+          const details = document.createElement("details");
+          details.open = true;
+          const summary = document.createElement("summary");
+          summary.className = "fr-node";
+          summary.dataset.nodeId = node.id;
+          summary.dataset.annotationLabel = nodeLabel(node);
+          summary.dataset.annotationBreadcrumb = node.breadcrumb;
+          const label = document.createElement("code");
+          label.className = "fr-node-label";
+          label.textContent = node.kind === "folder" ? `${node.label}/` : node.label;
+          summary.append(label);
+          addAnnotationMarker(summary);
+          setNodeAccessibleLabel(summary);
+          details.append(summary, createList(node.children));
+          item.append(details);
+        } else {
+          item.className = "fr-callable";
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "fr-node fr-callable-node";
+          button.dataset.nodeId = node.id;
+          button.dataset.annotationLabel = nodeLabel(node);
+          button.dataset.annotationBreadcrumb = node.breadcrumb;
+          const signature = document.createElement("code");
+          signature.className = "fr-signature";
+          signature.textContent = node.signature;
+          button.append(signature);
+          if (node.returns) {
+            const returns = document.createElement("span");
+            returns.className = "fr-return";
+            returns.textContent = `→ ${node.returns}`;
+            button.append(returns);
+          }
+          addAnnotationMarker(button);
+          setNodeAccessibleLabel(button);
+          item.append(button);
+          appendNote(item, "", node.description);
+          appendNote(item, "Uses", node.uses);
+          appendNote(item, "Updates", node.updates);
+        }
+
+        list.append(item);
+      }
+
+      return list;
+    };
+
+    const visibleNodes = () =>
+      Array.from(root.querySelectorAll(".fr-node")).filter(
+        (element) => element.getClientRects().length > 0,
+      );
+
+    const moveActiveNode = (offset) => {
+      const nodes = visibleNodes();
+      if (nodes.length === 0) return;
+      const currentIndex = nodes.indexOf(activeNode);
+      const nextIndex = Math.min(
+        nodes.length - 1,
+        Math.max(0, (currentIndex < 0 ? 0 : currentIndex) + offset),
+      );
+      const nextNode = nodes[nextIndex];
+      setActiveNode(nextNode);
+      nextNode.focus({ preventScroll: true });
+      nextNode.scrollIntoView({ block: "nearest" });
+    };
+
+    const updateAnnotationState = (element) => {
+      const marker = element.querySelector("[data-annotation-marker]");
+      if (marker) marker.hidden = !annotations.has(element.dataset.nodeId);
+      setNodeAccessibleLabel(element);
+    };
+
+    const buildAnnotationBundle = () => {
+      const entries = Array.from(root.querySelectorAll(".fr-node")).flatMap(
+        (element) => {
+          const annotation = annotations.get(element.dataset.nodeId);
+          if (!annotation) return [];
+          return [{
+            id: element.dataset.nodeId,
+            breadcrumb: element.dataset.annotationBreadcrumb,
+            annotation,
+          }];
+        },
+      );
+      if (entries.length === 0) return { count: 0, text: "" };
+
+      const lines = ["# Functions report annotations", ""];
+      entries.forEach((entry, index) => {
+        lines.push(`## \`${entry.breadcrumb}\``);
+        lines.push("");
+        lines.push(`Node ID: \`${entry.id}\``);
+        lines.push("");
+        lines.push(entry.annotation);
+        if (index < entries.length - 1) lines.push("");
+      });
+      return { count: entries.length, text: lines.join("\n") };
+    };
+
+    const conventionalCopy = (text) => {
+      const previousFocus = document.activeElement;
+      const fallback = document.createElement("textarea");
+      fallback.className = "fr-copy-fallback";
+      fallback.value = text;
+      fallback.setAttribute("aria-hidden", "true");
+      root.append(fallback);
+      fallback.focus({ preventScroll: true });
+      fallback.select();
+      let copied = false;
+      try {
+        copied = typeof document.execCommand === "function" && document.execCommand("copy");
+      } catch {
+        copied = false;
+      }
+      fallback.remove();
+      if (previousFocus instanceof HTMLElement) {
+        previousFocus.focus({ preventScroll: true });
+      }
+      return copied;
+    };
+
+    const copyText = async (text) => {
+      try {
+        if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+      } catch {
+        // Fall through to the conventional browser copy path.
+      }
+      return conventionalCopy(text);
+    };
+
+    const copyAnnotations = async () => {
+      const bundle = buildAnnotationBundle();
+      if (bundle.count === 0) {
+        copyStatus.textContent = "No annotations to copy.";
+        return;
+      }
+
+      const copied = await copyText(bundle.text);
+      if (copied) {
+        copyStatus.textContent = `${bundle.count} annotation${bundle.count === 1 ? "" : "s"} copied.`;
+      } else {
+        copyStatus.textContent = "Could not access the clipboard. Copy comments manually from the annotation editor.";
+      }
+    };
+
+    const isEditableTarget = (target) =>
+      target instanceof HTMLElement &&
+      (target.isContentEditable ||
+        target.matches("input, textarea, select") ||
+        target.closest("[contenteditable='true']") !== null);
+
+    const openAnnotationEditor = (element) => {
+      if (!element) return;
+      setActiveNode(element);
+      editorNode = element;
+      annotationTarget.textContent = element.dataset.annotationLabel || "Report node";
+      annotationText.value = annotations.get(element.dataset.nodeId) || "";
+      element.insertAdjacentElement("afterend", form);
+      form.hidden = false;
+      annotationText.focus();
+    };
+
+    const closeAnnotationEditor = () => {
+      const returnTarget = editorNode;
+      form.hidden = true;
+      editorNode = null;
+      if (returnTarget) {
+        setActiveNode(returnTarget);
+        returnTarget.focus({ preventScroll: true });
+        returnTarget.scrollIntoView({ block: "nearest" });
+      }
+    };
+
+    treeTarget.replaceChildren(createList(model.tree));
+    const firstNode = visibleNodes()[0];
+    if (firstNode) setActiveNode(firstNode);
+
+    root.addEventListener("focusin", (event) => {
+      const node = event.target.closest?.(".fr-node");
+      if (node && root.contains(node)) setActiveNode(node);
+    });
+
+    root.addEventListener("click", (event) => {
+      const node = event.target.closest?.(".fr-node");
+      if (node && root.contains(node)) setActiveNode(node);
+    });
+
+    root.addEventListener("contextmenu", (event) => {
+      const node = event.target.closest?.(".fr-node");
+      if (!node || !root.contains(node)) return;
+      event.preventDefault();
+      setActiveNode(node);
+      node.focus({ preventScroll: true });
+      openAnnotationEditor(node);
+    });
+
+    root.addEventListener("dblclick", (event) => {
+      const node = event.target.closest?.(".fr-node");
+      if (!node || !root.contains(node)) return;
+      event.preventDefault();
+      setActiveNode(node);
+      node.focus({ preventScroll: true });
+      openAnnotationEditor(node);
+    });
+
+    root.addEventListener("keydown", (event) => {
+      if (!form.hidden && form.contains(event.target)) return;
+      if (isEditableTarget(event.target)) return;
+      if (
+        treeTarget.contains(event.target) &&
+        (event.key === "c" || event.key === "C") &&
+        !event.metaKey &&
+        !event.ctrlKey &&
+        !event.altKey
+      ) {
+        event.preventDefault();
+        void copyAnnotations();
+        return;
+      }
+      const node = event.target.closest?.(".fr-node");
+      if (!node || !root.contains(node)) return;
+      setActiveNode(node);
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        moveActiveNode(1);
+        return;
+      }
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        moveActiveNode(-1);
+        return;
+      }
+      if (event.key === "ArrowLeft") {
+        const details = node.matches("summary") ? node.parentElement : null;
+        if (details?.open) {
+          event.preventDefault();
+          details.open = false;
+        }
+        return;
+      }
+      if (event.key === "ArrowRight") {
+        const details = node.matches("summary") ? node.parentElement : null;
+        if (details && !details.open) {
+          event.preventDefault();
+          details.open = true;
+        }
+        return;
+      }
+      if (event.key === "Enter" || event.key === "Return") {
+        event.preventDefault();
+        event.stopPropagation();
+        openAnnotationEditor(node);
+      }
+    });
+
+    copyButton.addEventListener("click", () => {
+      void copyAnnotations();
+    });
+
+    const saveAnnotation = () => {
+      const targetNode = editorNode || activeNode;
+      const nodeId = targetNode?.dataset.nodeId;
+      if (!targetNode || !nodeId) return;
+      if (annotationText.value.trim().length === 0) {
+        annotations.delete(nodeId);
+      } else {
+        annotations.set(nodeId, annotationText.value);
+      }
+      updateAnnotationState(targetNode);
+      closeAnnotationEditor();
+    };
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      saveAnnotation();
+    });
+
+    cancelButton.addEventListener("click", closeAnnotationEditor);
+    saveButton.addEventListener("click", saveAnnotation);
+
+    form.addEventListener("keydown", (event) => {
+      if (
+        event.metaKey &&
+        (event.key === "Enter" || event.key === "Return")
+      ) {
+        event.preventDefault();
+        saveAnnotation();
+        return;
+      }
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeAnnotationEditor();
+      }
+    });
+  })();
+</script>

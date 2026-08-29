@@ -1,59 +1,90 @@
 ---
 name: functions-report
-description: Inspect requested current source files or folders and produce one concise, fully indented structural outline of their named callables. Use for functions-outline requests; this skill analyzes source without editing it and does not produce call-flow, dependency, risk, or exhaustive callable-inventory reports.
+description: Inspect requested current source files or folders and produce one concise structural functions outline, rendered as an interactive keyboard-review tree when supported or as a fully indented text fallback. Use for functions-outline requests; analyze source without editing it and do not produce call-flow, dependency, risk, or exhaustive callable-inventory reports.
 ---
 
 # Functions Report
 
-Inspect the requested current source scope and return one concise structural outline of its named callables. Analyze only; do not edit the inspected source unless the user separately requests source changes.
+Inspect the requested current source scope and report its named callables in one normalized structural hierarchy. Analyze only; do not edit the inspected source unless the user separately requests source changes.
 
-## Scope and evidence
+## Collect source evidence
 
 - Resolve the user-requested paths and respect deliberately narrow file, folder, or symbol scopes. Inspect enough current source to report the requested scope accurately.
 - When files or folders are requested without narrower symbols, include the named callables defined in those scoped files. Omit trivial anonymous iteration and wiring callbacks unless the user explicitly asks for them.
 - Derive every callable name, parameter, return annotation or result shape, and note from the inspected code. Do not invent missing information or descriptive names for anonymous callables.
-- If a requested path cannot be resolved, state that briefly before the outline instead of fabricating content.
+- If a requested path cannot be resolved, state that briefly before the report instead of fabricating content.
 
-## Normalize the structural hierarchy
+## Build structured input
 
-For each included callable, form a structural path from every directory segment plus its defining filename. The callable is a child of that path and never participates in prefix calculation.
+Read [references/report-input.schema.json](references/report-input.schema.json), then write a temporary JSON input that conforms to it:
 
-1. Compute the longest structural prefix shared by all included callables.
-2. Remove that entire shared prefix from the displayed hierarchy.
-3. Never restore a removed repository, application, `src`, `Sources`, module, folder, or filename for context.
-4. Render only the remaining structural nodes, then their callables, in this order: folder or module nodes, file nodes, callables, and optional nested notes.
-5. Preserve every real structural level after the shared prefix. Do not flatten divergent folders.
+- Set `schemaVersion` to `1`.
+- Add one `files` record per defining source file. Give each record its structural `path`, including all directory segments and the filename; the renderer removes the common prefix.
+- Put the real source-level name and actual parameters in each callable's `signature`. Include `()` when there are no explicit parameters, and preserve compact meaningful syntax such as destructuring, rest parameters, defaults, or labels.
+- Add `returns` only when a source-supported return type or result shape materially improves understanding.
+- Let a self-explanatory signature stand alone. Add `description` only when one concise responsibility statement is needed.
+- Add `uses` or `updates` only for an architecturally important implicit dependency, state mutation, persistence effect, or other side effect.
+- Do not add annotations, source excerpts, full-path display fields, call graphs, filters, or old report sections to the input.
 
-Consequences:
+## Render and present
 
-- One file: all directory and filename segments are shared, so begin directly with its callables.
-- Several files in one directory: omit the shared directories and use the differing filenames as top-level nodes.
-- Divergent subfolders: retain each differing folder and nest its files beneath it.
-
-## Render the outline
-
-- Return exactly one fully indented hierarchy in a fenced `text` block. Apart from a brief unresolved-path notice when needed, do not add prose or separate sections.
-- Show each callable with its real source-level name and actual parameter names. Include `()` when it has no explicit parameters, and preserve compact meaningful syntax such as destructuring, rest parameters, defaults, or labels.
-- Add `→ ReturnType` only when a source-supported return type or result shape materially improves understanding. It is not required on every callable.
-- Let a self-explanatory signature stand alone. When the signature is insufficient, add one concise explanation nested directly beneath it.
-- Add a concise nested `Uses:` or `Updates:` note only for an architecturally important implicit dependency, state mutation, persistence effect, or other side effect.
-- Do not add call-flow, dependency, risk, commentary, broken-connection, or other report sections.
-
-Compact normalization examples:
+From the skill directory, generate the report with:
 
 ```text
-# All callables are in repo/src/config.ts; omit the entire shared file path.
+node scripts/render-report.mjs <input.json> <output.html>
+```
+
+The output is a self-contained HTML fragment. When the current interface supports inline visualizations, present that fragment as the report. It provides native disclosure controls, visible-node keyboard navigation, and one in-memory annotation per folder, file, or callable. Its visible `Copy annotations` button and plain `C` shortcut copy only the current annotations as portable Markdown. Do not claim that annotations persist or add any host messaging, file transfer, storage, or other transport.
+
+If inline visualization is unavailable, return the same normalized hierarchy as exactly one fully indented fenced `text` block. Do not present both forms unless the user asks. Apart from a brief unresolved-path notice when needed, add no prose or separate sections.
+
+## Interpret copied annotations
+
+The portable clipboard content uses exactly this form, preserving annotation tree order and multiline comment text:
+
+```text
+# Functions report annotations
+
+## `<structural breadcrumb or callable signature>`
+
+Node ID: `<stable node ID>`
+
+<comment text>
+```
+
+When the user pastes content beginning with `# Functions report annotations`:
+
+- Treat each `##` block as a user comment anchored to the immediately following `Node ID` and breadcrumb or signature.
+- Use the node ID as the stable precise reference and the breadcrumb or signature as human-readable context.
+- Preserve the comments' order and meaning when responding or applying an explicitly authorized change.
+- Never treat copied annotations alone as implicit authorization to alter source. Follow the user's accompanying request and normal authorization boundaries.
+- If a target cannot be found in the current report or source, explain that briefly instead of guessing.
+
+## Common-prefix law
+
+The renderer enforces this law. Apply it directly when producing the text fallback:
+
+1. Treat each callable as a child of a structural path containing every directory segment plus its defining filename. Callable names do not participate in prefix calculation.
+2. Compute the longest structural prefix shared by every included callable's file path, including filenames in the calculation.
+3. Remove that entire prefix. Never restore a removed repository, application, `src`, `Sources`, module, folder, or filename for context.
+4. Render only the remaining folder or module nodes, file nodes, callables, and optional nested notes, in that order. Preserve every real structural level that remains.
+5. With one file, omit all directories and its filename so callables are roots. With sibling files, use filenames as roots. With divergent subfolders, retain the differing folders and nest their files.
+
+Compact examples:
+
+```text
+# One file: repo/src/config.ts
 loadConfig(path)
 saveConfig(path, options = {})
   Updates: Persists the normalized configuration.
 
-# Callables are in repo/src/parser.ts and repo/src/renderer.ts; omit repo/src.
+# Sibling files: repo/src/parser.ts and repo/src/renderer.ts
 parser.ts
   parse(input) → SyntaxTree
 renderer.ts
   render(tree)
 
-# Callables diverge under repo/src/client and repo/src/server; retain those folders.
+# Divergent folders below repo/src
 client/
   request.ts
     sendRequest(url, { signal })
@@ -61,3 +92,5 @@ server/
   handler.ts
     handleRequest(request) → Response
 ```
+
+Do not add call-flow, dependency, risk, commentary, broken-connection, or other report sections.

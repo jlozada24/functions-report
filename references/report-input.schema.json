@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openai.local/functions-report/report-input.schema.json",
+  "title": "Functions report input",
+  "description": "Structured source evidence for the deterministic functions-outline renderer.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "files"],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Defining source files. Paths must be unique after slash normalization.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "callables"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S",
+            "description": "Structural path containing all directory segments and the defining filename."
+          },
+          "callables": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["signature"],
+              "properties": {
+                "signature": {
+                  "type": "string",
+                  "minLength": 1,
+                  "pattern": "\\S",
+                  "description": "Real source-level name and actual parameters, including empty parentheses when applicable."
+                },
+                "returns": {
+                  "$ref": "#/$defs/nonBlankText",
+                  "description": "Material source-supported return type or result shape, without the arrow prefix."
+                },
+                "description": {
+                  "$ref": "#/$defs/nonBlankText",
+                  "description": "Concise responsibility only when the signature is not self-explanatory."
+                },
+                "uses": {
+                  "$ref": "#/$defs/nonBlankText",
+                  "description": "Architecturally important implicit dependency or side effect."
+                },
+                "updates": {
+                  "$ref": "#/$defs/nonBlankText",
+                  "description": "Architecturally important state mutation or persistence effect."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "nonBlankText": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    }
+  }
+}
