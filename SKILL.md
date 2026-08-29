@@ -34,7 +34,9 @@ From the skill directory, generate the report with:
 node scripts/render-report.mjs <input.json> <output.html>
 ```
 
-The output is a self-contained HTML fragment. When the current interface supports inline visualizations, present that fragment as the report. It provides native disclosure controls, visible-node keyboard navigation, and one in-memory annotation per folder, file, or callable. Its visible `Copy annotations` button and plain `C` shortcut copy only the current annotations as portable Markdown. Do not claim that annotations persist or add any host messaging, file transfer, storage, or other transport.
+The output is a self-contained HTML fragment. When the current interface supports inline visualizations, present that fragment as the report. It provides native disclosure controls at every folder, file, and callable level, visible-node keyboard navigation, and one in-memory annotation per folder, file, or callable. Its visible `Copy annotations` button and plain `C` shortcut copy only the current annotations as portable Markdown. Do not claim that annotations persist or add any host messaging, file transfer, storage, or other transport.
+
+The rendered hierarchy shows a visible count badge on every structural node. Folder badges count all defining files below that folder, including files in nested folders; file badges count the callables directly reported for that file.
 
 If inline visualization is unavailable, return the same normalized hierarchy as exactly one fully indented fenced `text` block. Do not present both forms unless the user asks. Apart from a brief unresolved-path notice when needed, add no prose or separate sections.
 

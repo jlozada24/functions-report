@@ -237,6 +237,16 @@ function digest(value, length = 20) {
   return createHash("sha256").update(value).digest("hex").slice(0, length);
 }
 
+function countDescendantFiles(children) {
+  return children.reduce((count, child) => {
+    if (child.kind === "file") return count + 1;
+    if (child.kind === "folder") {
+      return count + countDescendantFiles(child.children);
+    }
+    return count;
+  }, 0);
+}
+
 function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
   const signatureCounts = new Map();
 
@@ -249,6 +259,13 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
         id: `node-${digest(identity.join("\u001f"))}`,
         kind: child.kind,
         label: child.label,
+        ...(child.kind === "folder"
+          ? { fileCount: countDescendantFiles(child.children) }
+          : {
+              callableCount: child.children.filter(
+                (descendant) => descendant.kind === "callable",
+              ).length,
+            }),
         breadcrumb: childBreadcrumbParts.join(" › "),
         children: assignNodeIds(child.children, identity, childBreadcrumbParts),
       };

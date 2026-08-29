@@ -110,6 +110,60 @@ test("divergent folders remain and contain their defining files", () => {
   );
 });
 
+test("folders count descendant files and files count their callables", () => {
+  const normalized = normalizeReport(
+    inputWith([
+      {
+        path: "/repo/src/client/request.ts",
+        callables: [callable("send()"), callable("cancel()")],
+      },
+      {
+        path: "/repo/src/server/handler.ts",
+        callables: [callable("handle()")],
+      },
+      {
+        path: "/repo/src/server/routes/health.ts",
+        callables: [callable("health()"), callable("ready()"), callable("live()")],
+      },
+    ]),
+  );
+
+  const [client, server] = normalized.tree;
+  const routes = server.children.find((node) => node.kind === "folder");
+  const handler = server.children.find((node) => node.kind === "file");
+
+  assert.equal(client.fileCount, 1);
+  assert.equal(client.children[0].callableCount, 2);
+  assert.equal(server.fileCount, 2);
+  assert.equal(routes.fileCount, 1);
+  assert.equal(routes.children[0].callableCount, 3);
+  assert.equal(handler.callableCount, 1);
+});
+
+test("structural node IDs remain stable when visible counts change", () => {
+  const base = inputWith([
+    {
+      path: "/repo/src/client/request.ts",
+      callables: [callable("send()")],
+    },
+    {
+      path: "/repo/src/server/handler.ts",
+      callables: [callable("handle()")],
+    },
+  ]);
+  const changed = structuredClone(base);
+  changed.files[0].callables.push(callable("cancel()"));
+
+  const baseClient = normalizeReport(base).tree[0];
+  const changedClient = normalizeReport(changed).tree[0];
+
+  assert.equal(baseClient.fileCount, changedClient.fileCount);
+  assert.equal(baseClient.id, changedClient.id);
+  assert.equal(baseClient.children[0].callableCount, 1);
+  assert.equal(changedClient.children[0].callableCount, 2);
+  assert.equal(baseClient.children[0].id, changedClient.children[0].id);
+});
+
 test("normalization and node IDs are deterministic across file input order", () => {
   const first = inputWith([
     { path: "/repo/src/b.ts", callables: [callable("beta()")] },
@@ -277,6 +331,7 @@ test("fragment wires native review navigation and the inline annotation editor",
   assert.match(fragment, /<form[\s\S]*data-annotation-form[\s\S]*hidden/);
   assert.doesNotMatch(fragment, /<dialog\b/i);
   assert.match(fragment, /<textarea[\s\S]*data-annotation-text/);
+  assert.match(fragment, /rows="1"/);
   assert.match(fragment, />Cancel<\/button>/);
   assert.match(fragment, />Save<\/button>/);
   assert.match(fragment, /const annotations = new Map\(\)/);
@@ -286,7 +341,8 @@ test("fragment wires native review navigation and the inline annotation editor",
   assert.match(fragment, /"ArrowRight"/);
   assert.match(fragment, /event\.key === "Enter" \|\| event\.key === "Return"/);
   assert.match(fragment, /addEventListener\("contextmenu"/);
-  assert.match(fragment, /addEventListener\("dblclick"/);
+  assert.doesNotMatch(fragment, /addEventListener\("dblclick"/);
+  assert.doesNotMatch(fragment, /double-click/i);
   assert.match(fragment, /scrollIntoView\(\{ block: "nearest" \}\)/);
   assert.match(fragment, /dataset\.nodeId = node\.id/);
   assert.match(fragment, /annotations\.delete\(nodeId\)/);
@@ -306,13 +362,181 @@ test("fragment wires native review navigation and the inline annotation editor",
   assert.match(fragment, /aria-keyshortcuts="Meta\+Enter"/);
   assert.match(fragment, /aria-keyshortcuts="Escape"/);
   assert.match(fragment, /saveButton\.addEventListener\("click", saveAnnotation\)/);
+  assert.match(fragment, /const resizeAnnotationText = \(\) =>/);
+  assert.match(fragment, /annotationText\.scrollHeight/);
+  assert.match(fragment, /annotationText\.addEventListener\("input", resizeAnnotationText\)/);
+  assert.match(fragment, /resizeAnnotationText\(\);\s*annotationText\.focus\(\)/);
+  assert.match(fragment, /resize: none/);
   assert.match(fragment, /insertAdjacentElement\("afterend", form\)/);
+  assert.match(fragment, /if \(disclosure\?\.matches\("details"\)\) disclosure\.open = true/);
   assert.match(fragment, /event\.key === "Escape"/);
   assert.doesNotMatch(fragment, /\btabindex\s*=/i);
   assert.doesNotMatch(
     fragment,
     /\b(?:localStorage|sessionStorage|window\.openai|sendFollowUpMessage)\b/,
   );
+});
+
+test("a callable with hidden detail renders as an open native disclosure", () => {
+  const fragment = renderReport(
+    inputWith([
+      {
+        path: "/repo/src/review.ts",
+        callables: [
+          callable("review(item)", {
+            description: "Reviews one item.",
+            uses: "The active review policy.",
+            updates: "Records the review result.",
+          }),
+        ],
+      },
+    ]),
+    template,
+  );
+
+  assert.match(fragment, /const hasDetails = Boolean\(node\.description \|\| node\.uses \|\| node\.updates\)/);
+  assert.match(fragment, /document\.createElement\(hasDetails \? "summary" : "button"\)/);
+  assert.match(fragment, /if \(hasDetails\) \{/);
+  assert.match(fragment, /const disclosure = document\.createElement\("details"\)/);
+  assert.match(fragment, /disclosure\.className = "fr-callable-disclosure"/);
+  assert.match(fragment, /disclosure\.open = true/);
+  assert.match(fragment, /callableNode\.className = "fr-node fr-callable-node"/);
+  assert.match(fragment, /content\.className = "fr-callable-content"/);
+  assert.match(fragment, /appendNote\(content, "", node\.description\)/);
+  assert.match(fragment, /appendNote\(content, "Uses", node\.uses\)/);
+  assert.match(fragment, /appendNote\(content, "Updates", node\.updates\)/);
+  assert.match(fragment, /disclosure\.append\(callableNode, content\)/);
+  assert.match(fragment, /summary\.fr-callable-node::before/);
+  assert.match(fragment, /\.fr-callable-disclosure:not\(\[open\]\) > summary\.fr-callable-node::before/);
+  assert.match(fragment, /transform: rotate\(90deg\)/);
+  assert.match(fragment, /transform: rotate\(0deg\)/);
+});
+
+test("a callable without hidden detail renders as a non-disclosure row", () => {
+  const fragment = renderReport(
+    inputWith([
+      {
+        path: "/repo/src/review.ts",
+        callables: [callable("review(item)", { returns: "ReviewResult" })],
+      },
+    ]),
+    template,
+  );
+
+  assert.match(fragment, /document\.createElement\(hasDetails \? "summary" : "button"\)/);
+  assert.match(fragment, /if \(!hasDetails\) callableNode\.type = "button"/);
+  assert.match(fragment, /\} else \{\s*item\.append\(callableNode\)/);
+  assert.match(fragment, /button\.fr-callable-node \{\s*appearance: none/);
+  assert.match(fragment, /button\.fr-callable-node::before[\s\S]*?content: "•"/);
+  assert.match(fragment, /\.fr-callable-node:hover/);
+  assert.doesNotMatch(fragment, /addEventListener\("dblclick"/);
+});
+
+test("callable signatures use safe IDE-style syntax token spans", () => {
+  const fragment = renderReport(
+    inputWith([
+      {
+        path: "/repo/src/request.ts",
+        callables: [
+          callable('async sendRequest(url, retries = 2, mode = "fast")', {
+            returns: "Promise<Response>",
+          }),
+        ],
+      },
+    ]),
+    template,
+  );
+
+  assert.match(fragment, /const tokenizeSignature = \(signature\) =>/);
+  assert.match(fragment, /const appendHighlightedSignature = \(container, signature\) =>/);
+  assert.match(fragment, /appendHighlightedSignature\(signature, node\.signature\)/);
+  assert.match(fragment, /span\.textContent = token\.text/);
+  assert.match(fragment, /returnType\.textContent = node\.returns/);
+  assert.match(fragment, /fr-syntax-keyword/);
+  assert.match(fragment, /fr-syntax-name/);
+  assert.match(fragment, /fr-syntax-parameter/);
+  assert.match(fragment, /fr-syntax-punctuation/);
+  assert.match(fragment, /fr-syntax-string/);
+  assert.match(fragment, /fr-syntax-literal/);
+  assert.match(fragment, /fr-syntax-type/);
+  assert.doesNotMatch(fragment, /\.innerHTML\s*=/);
+});
+
+test("visible-node traversal excludes descendants of every collapsed disclosure", () => {
+  const fragment = renderReport(
+    inputWith([
+      {
+        path: "/repo/src/server/routes/health.ts",
+        callables: [callable("health()", { description: "Checks health." })],
+      },
+      {
+        path: "/repo/src/client/request.ts",
+        callables: [callable("send()")],
+      },
+    ]),
+    template,
+  );
+
+  assert.match(fragment, /const isNodeVisible = \(element\) =>/);
+  assert.match(fragment, /while \(ancestor && ancestor !== root\)/);
+  assert.match(fragment, /ancestor\.matches\("details:not\(\[open\]\)"\)/);
+  assert.match(fragment, /if \(summary !== element && !summary\?\.contains\(element\)\) return false/);
+  assert.match(fragment, /filter\(isNodeVisible\)/);
+  assert.match(fragment, /const reconcileCollapsedDisclosure = \(event\) =>/);
+  assert.match(fragment, /disclosure\.contains\(activeNode\)/);
+  assert.match(fragment, /details\.addEventListener\("toggle", reconcileCollapsedDisclosure\)/);
+  assert.match(fragment, /disclosure\.addEventListener\("toggle", reconcileCollapsedDisclosure\)/);
+  assert.match(fragment, /if \(!form\.hidden && disclosure\.contains\(form\)\)/);
+  assert.match(fragment, /setActiveNode\(summary\)/);
+  assert.match(fragment, /summary\.focus\(\{ preventScroll: true \}\)/);
+});
+
+test("nested hierarchy uses compact disclosure rows instead of stacked cards", () => {
+  const fragment = renderReport(
+    inputWith([
+      {
+        path: "/repo/src/client/request.ts",
+        callables: [callable("send()", { description: "Sends a request." })],
+      },
+      {
+        path: "/repo/src/server/handler.ts",
+        callables: [callable("handle()")],
+      },
+    ]),
+    template,
+  );
+
+  assert.match(fragment, /item\.className = `fr-group fr-\$\{node\.kind\}`/);
+  assert.match(fragment, /details \.fr-group \{[\s\S]*?background: transparent;[\s\S]*?border: 0;[\s\S]*?border-bottom: 1px solid var\(--fr-divider\)/);
+  assert.match(fragment, /\.fr-callable \{[\s\S]*?padding: 0;[\s\S]*?background: transparent;[\s\S]*?border: 0;[\s\S]*?border-bottom: 1px solid var\(--fr-divider\)/);
+  assert.match(fragment, /\.fr-note \{[\s\S]*?padding: 1px 4px;[\s\S]*?background: transparent/);
+  assert.match(fragment, /border-inline-start: 1px solid color-mix/);
+});
+
+test("fragment renders the reference-inspired responsive report shell", () => {
+  const fragment = renderReport(
+    inputWith([
+      {
+        path: "/repo/src/report.ts",
+        callables: [callable("renderReport(input)")],
+      },
+    ]),
+    template,
+  );
+
+  assert.match(fragment, /<div class="fr-header">/);
+  assert.match(fragment, /<span class="fr-eyebrow">Structural review<\/span>/);
+  assert.match(fragment, /<h1>Functions outline<\/h1>/);
+  assert.match(fragment, /<div class="fr-tree-wrap">/);
+  assert.match(fragment, /--fr-bg: #0e1014/);
+  assert.match(fragment, /background: linear-gradient\(180deg, var\(--fr-header-1\), var\(--fr-header-2\)\)/);
+  assert.match(fragment, /border-top: 2px solid var\(--fr-group-color\)/);
+  assert.match(fragment, /className = "fr-count-badge"/);
+  assert.match(fragment, /count\.setAttribute\("aria-hidden", "true"\)/);
+  assert.match(fragment, /File \$\{node\.label\}, \$\{countLabel\(node\)\}/);
+  assert.match(fragment, /@media \(prefers-color-scheme: light\)/);
+  assert.match(fragment, /@media \(max-width: 640px\)/);
+  assert.doesNotMatch(fragment, /(?:^|[}\s])(?:html|body|:root)\s*\{/m);
 });
 
 test("fragments at or above the byte limit are rejected", () => {
