@@ -121,7 +121,7 @@ const REQUIRED_TEMPLATE_CONTRACT = [
       "model.colors.structural.callable",
       "model.colors.structural.constant",
       "model.colors.structural.dataStructure",
-      "folderColor(node.breadcrumb)",
+      "folderColor(node.breadcrumb, usedFolderColorIndexes)",
       "languageColor(language)",
       'item.style.setProperty("--fr-file-language-color", themedCssColor(languageColor(node.language)))',
       ".fr-constant-node",

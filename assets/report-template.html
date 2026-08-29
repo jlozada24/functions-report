@@ -254,6 +254,14 @@
     --fr-file-language-color: var(--fr-level-file);
   }
 
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-tree > .fr-list > .fr-folder {
+    --fr-group-color: var(--fr-folder-accent-color, var(--fr-level-folder));
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-tree > .fr-list > .fr-file {
+    --fr-group-color: var(--fr-level-file);
+  }
+
   #%%FUNCTIONS_REPORT_ROOT_ID%% details > .fr-list {
     display: grid;
     gap: 0;
@@ -897,14 +905,19 @@
       `light-dark(${color.light}, ${color.dark})`;
     const languageColor = (language) =>
       model.colors.languages[language] || model.colors.languageFallback;
-    const folderColor = (breadcrumb) => {
+    const folderColor = (breadcrumb, usedIndexes) => {
       let hash = 2166136261;
       for (const character of breadcrumb) {
         hash ^= character.codePointAt(0);
         hash = Math.imul(hash, 16777619);
       }
       const palette = model.colors.folderPalette;
-      return palette[(hash >>> 0) % palette.length] || model.colors.structural.folder;
+      let index = (hash >>> 0) % palette.length;
+      while (usedIndexes.has(index) && usedIndexes.size < palette.length) {
+        index = (index + 1) % palette.length;
+      }
+      usedIndexes.add(index);
+      return palette[index] || model.colors.structural.folder;
     };
 
     root.style.setProperty(
@@ -1174,6 +1187,7 @@
     const createList = (nodes) => {
       const list = document.createElement("ul");
       list.className = "fr-list";
+      const usedFolderColorIndexes = new Set();
 
       for (const node of nodes) {
         const item = document.createElement("li");
@@ -1181,7 +1195,7 @@
         if (node.kind === "folder" || node.kind === "file") {
           item.className = `fr-group fr-${node.kind}`;
           if (node.kind === "folder") {
-            item.style.setProperty("--fr-folder-accent-color", themedCssColor(folderColor(node.breadcrumb)));
+            item.style.setProperty("--fr-folder-accent-color", themedCssColor(folderColor(node.breadcrumb, usedFolderColorIndexes)));
           } else {
             item.style.setProperty("--fr-file-language-color", themedCssColor(languageColor(node.language)));
           }
