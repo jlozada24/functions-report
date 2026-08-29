@@ -2,7 +2,7 @@
 
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { basename, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const MAX_FRAGMENT_BYTES = 1_000_000;
@@ -178,6 +178,33 @@ export class ReportOutputError extends Error {
     super(message);
     this.name = "ReportOutputError";
   }
+}
+
+function escapeMarkdownLabel(value) {
+  return value.replace(/[\\[\]]/g, "\\$&");
+}
+
+export function formatLocalFileLink(filePath) {
+  if (typeof filePath !== "string" || filePath.trim().length === 0) {
+    throw new TypeError("filePath must be a non-empty string");
+  }
+
+  const absolutePath = resolve(filePath);
+  return `[${escapeMarkdownLabel(basename(absolutePath))}](<${absolutePath}>)`;
+}
+
+function resolveOutputPath(outputPath) {
+  if (typeof outputPath !== "string" || outputPath.trim().length === 0) {
+    throw new ReportInputError("Output path must be a non-empty string");
+  }
+
+  const absolutePath = resolve(outputPath);
+  if (absolutePath === TEMPLATE_PATH) {
+    throw new ReportOutputError(
+      "Refusing to overwrite the internal report template; choose a generated HTML output path",
+    );
+  }
+  return absolutePath;
 }
 
 function failInput(path, message) {
@@ -815,6 +842,8 @@ function helpText() {
 
 Render a structured functions report as a self-contained HTML fragment.
 
+On success, prints a clickable absolute local-file link to the exact generated artifact.
+
 Arguments:
   input.json    JSON matching references/report-input.schema.json
   output.html   Destination for the generated HTML fragment
@@ -847,6 +876,7 @@ export async function main(args = process.argv.slice(2)) {
   }
 
   const [inputPath, outputPath] = positionalArgs;
+  const resolvedOutputPath = resolveOutputPath(outputPath);
   let input;
   try {
     input = JSON.parse(await readFile(inputPath, "utf8"));
@@ -860,7 +890,8 @@ export async function main(args = process.argv.slice(2)) {
   const template = await readFile(TEMPLATE_PATH, "utf8");
   const fragment = renderReport(input, template);
   const output = standalone ? wrapStandaloneDocument(fragment) : fragment;
-  await writeFile(outputPath, output, "utf8");
+  await writeFile(resolvedOutputPath, output, "utf8");
+  process.stdout.write(`Generated report: ${formatLocalFileLink(resolvedOutputPath)}\n`);
 }
 
 const isMain =
