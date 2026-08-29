@@ -89,6 +89,18 @@ Also take a screenshot when visual placement, color, wrapping, or glyph renderin
 
 Do not stop at generation or server startup. The preview is complete only after the in-app-browser tab has loaded the report and the required interface elements have been verified.
 
-## 6. Return the JSON receipt
+## 6. Return the website URL and JSON receipt
 
-After browser verification, return the exact `functions-report-input.json` receipt to the user as a clickable local-file link. Also include its complete JSON contents in a fenced `json` block unless the user asks for only the file. Do not regenerate the receipt from the normalized model, scrape it from the rendered page, summarize it, or silently omit fields. The browser preview and the unchanged input receipt are the two required outputs of this workflow.
+After browser verification, return both required outputs in this order:
+
+1. `Website:` followed by the exact verified loopback URL as a clickable Markdown link. The visible label and link target must both be the complete URL, including `http://`, `127.0.0.1`, the selected numeric port, and the generated document path:
+
+   ```text
+   Website: [http://127.0.0.1:<selected-port>/functions-report.html](http://127.0.0.1:<selected-port>/functions-report.html)
+   ```
+
+   Replace `<selected-port>` with the actual port. Never substitute a local `.html` filesystem link, a bare filename or path, or a `file:` URL. Return the same live URL that was successfully loaded and verified in the in-app browser; do not reuse a stale port or invent a URL from the output file's location.
+
+2. `JSON receipt:` followed by the exact `functions-report-input.json` receipt as a clickable local-file link. Also include its complete JSON contents in a fenced `json` block unless the user asks for only the file. Do not regenerate the receipt from the normalized model, scrape it from the rendered page, summarize it, or silently omit fields.
+
+The verified HTTP website URL and the unchanged input receipt are the two required outputs of this workflow.

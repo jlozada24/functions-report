@@ -420,6 +420,14 @@
     --fr-item-kind-color: var(--fr-level-constant);
   }
 
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-item-kind-functions {
+    --fr-item-kind-color: var(--fr-tag-functions);
+    color: color-mix(in srgb, var(--fr-tag-functions) 72%, var(--fr-text));
+    background: color-mix(in srgb, var(--fr-tag-functions) 22%, var(--fr-bg-3));
+    border-color: color-mix(in srgb, var(--fr-tag-functions) 78%, var(--fr-border));
+    box-shadow: 0 0 7px color-mix(in srgb, var(--fr-tag-functions) 24%, transparent);
+  }
+
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-item-kind-structures {
     --fr-item-kind-color: var(--fr-level-data-structure);
   }
@@ -943,6 +951,10 @@
     root.style.setProperty(
       "--fr-level-detail",
       themedCssColor(model.colors.structural.detail),
+    );
+    root.style.setProperty(
+      "--fr-tag-functions",
+      themedCssColor(model.colors.inventory.functions),
     );
 
     const annotations = new Map();

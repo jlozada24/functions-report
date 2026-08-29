@@ -30,6 +30,9 @@ export const REPORT_COLOR_CONFIG = Object.freeze({
     themedColor("#c68ca4", "#7c4961"),
     themedColor("#9b9fc7", "#545a8b"),
   ]),
+  inventory: Object.freeze({
+    functions: themedColor("#00f5ff", "#00c7df"),
+  }),
   languageFallback: themedColor("#c4cee0", "#53627a"),
   languages: Object.freeze({
     "C": themedColor("#60a5ff", "#005fbd"),
@@ -121,6 +124,7 @@ const REQUIRED_TEMPLATE_CONTRACT = [
       "model.colors.structural.callable",
       "model.colors.structural.constant",
       "model.colors.structural.dataStructure",
+      "model.colors.inventory.functions",
       "folderColor(node.breadcrumb, usedFolderColorIndexes)",
       "languageColor(language)",
       'item.style.setProperty("--fr-file-language-color", themedCssColor(languageColor(node.language)))',
