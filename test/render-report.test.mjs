@@ -182,6 +182,39 @@ test("folder tags describe contents while file tags describe inventory", () => {
   assert.equal(handler.finalCount, 1);
 });
 
+test("folder change figures stay with the folder that directly contains changed files", () => {
+  const normalized = normalizeReport(
+    inputWith([
+      {
+        path: "/repo/Sources/CodexCursorBridgeMenu/HelperPopoverView.swift",
+        changes: { additions: 1, deletions: 1 },
+        callables: [callable("showHelper()")],
+      },
+      {
+        path: "/repo/Tests/CodexCursorBridgeMenuTests/HelperPopoverViewTests.swift",
+        callables: [callable("testHelper()")],
+      },
+    ]),
+  );
+
+  const sources = normalized.tree.find((node) => node.label === "Sources");
+  const module = sources.children.find((node) => node.label === "CodexCursorBridgeMenu");
+  const file = module.children.find((node) => node.label === "HelperPopoverView.swift");
+
+  assert.deepEqual(
+    { additions: sources.additions, deletions: sources.deletions },
+    { additions: 0, deletions: 0 },
+  );
+  assert.deepEqual(
+    { additions: module.additions, deletions: module.deletions },
+    { additions: 1, deletions: 1 },
+  );
+  assert.deepEqual(
+    { additions: file.additions, deletions: file.deletions },
+    { additions: 1, deletions: 1 },
+  );
+});
+
 test("structural node IDs remain stable when visible counts change", () => {
   const base = inputWith([
     {

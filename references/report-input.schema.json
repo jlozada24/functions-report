@@ -38,7 +38,7 @@
             "type": "object",
             "additionalProperties": false,
             "required": ["additions", "deletions"],
-            "description": "Optional proposal addition and deletion figures not already represented by proposal-marked source-item rows. Ordinary reports omit this and render zeroes. These figures do not alter the inventory-derived total count badge.",
+            "description": "Optional proposal addition and deletion figures not already represented by proposal-marked source-item rows. The renderer shows them on the defining file and its directly enclosing folder, not higher folder ancestors. Ordinary reports omit this and render zeroes. These figures do not alter the inventory-derived total count badge.",
             "properties": {
               "additions": {
                 "type": "integer",

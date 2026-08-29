@@ -492,16 +492,12 @@ function sourceItemKinds(children) {
   return [...kinds];
 }
 
-function countDescendantChanges(children) {
+function countDirectFileChanges(children) {
   return children.reduce(
     (totals, child) => {
       if (child.kind === "file") {
         totals.additions += child.changes?.additions ?? 0;
         totals.deletions += child.changes?.deletions ?? 0;
-      } else if (child.kind === "folder") {
-        const nested = countDescendantChanges(child.children);
-        totals.additions += nested.additions;
-        totals.deletions += nested.deletions;
       }
       return totals;
     },
@@ -517,16 +513,16 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
       const identity = [...ancestors, `${child.kind}:${child.label}`];
       const displayLabel = child.kind === "folder" ? `${child.label}/` : child.label;
       const childBreadcrumbParts = [...breadcrumbParts, displayLabel];
-      const descendantChanges = child.kind === "folder"
-        ? countDescendantChanges(child.children)
+      const directFileChanges = child.kind === "folder"
+        ? countDirectFileChanges(child.children)
         : null;
       const changes = child.kind === "folder"
         ? {
             additions:
-              descendantChanges.additions +
+              directFileChanges.additions +
               countDirectProposalChildren(child.children, "file", "add"),
             deletions:
-              descendantChanges.deletions +
+              directFileChanges.deletions +
               countDirectProposalChildren(child.children, "file", "remove"),
           }
         : {
