@@ -332,8 +332,12 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
         label: child.label,
         languages: child.kind === "folder"
           ? descendantLanguages(child.children)
-          : [child.language],
-        itemKinds: ["Functions"],
+          : [],
+        itemKinds: child.kind === "folder"
+          ? (child.children.some((descendant) => descendant.kind === "folder")
+              ? ["Folders"]
+              : [])
+          : ["Functions"],
         additions: changes.additions,
         deletions: changes.deletions,
         ...(child.kind === "folder"

@@ -110,7 +110,7 @@ test("divergent folders remain and contain their defining files", () => {
   );
 });
 
-test("folders aggregate descendant source languages and retain one total count", () => {
+test("folder tags describe contents while file tags describe inventory", () => {
   const normalized = normalizeReport(
     inputWith([
       {
@@ -136,13 +136,13 @@ test("folders aggregate descendant source languages and retain one total count",
 
   assert.equal(client.fileCount, 1);
   assert.deepEqual(client.languages, ["JavaScript"]);
-  assert.deepEqual(client.itemKinds, ["Functions"]);
+  assert.deepEqual(client.itemKinds, []);
   assert.deepEqual(
     { additions: client.additions, deletions: client.deletions },
     { additions: 7, deletions: 2 },
   );
   assert.equal(client.children[0].callableCount, 2);
-  assert.deepEqual(client.children[0].languages, ["JavaScript"]);
+  assert.deepEqual(client.children[0].languages, []);
   assert.deepEqual(client.children[0].itemKinds, ["Functions"]);
   assert.deepEqual(
     {
@@ -153,13 +153,14 @@ test("folders aggregate descendant source languages and retain one total count",
   );
   assert.equal(server.fileCount, 2);
   assert.deepEqual(server.languages, ["Shell", "TypeScript"]);
-  assert.deepEqual(server.itemKinds, ["Functions"]);
+  assert.deepEqual(server.itemKinds, ["Folders"]);
   assert.deepEqual(
     { additions: server.additions, deletions: server.deletions },
     { additions: 3, deletions: 1 },
   );
   assert.equal(routes.fileCount, 1);
   assert.deepEqual(routes.languages, ["Shell"]);
+  assert.deepEqual(routes.itemKinds, []);
   assert.deepEqual(
     { additions: routes.additions, deletions: routes.deletions },
     { additions: 0, deletions: 0 },
@@ -680,7 +681,9 @@ test("fragment renders the reference-inspired responsive report shell", () => {
   assert.match(fragment, /additions\.textContent = `\+\$\{node\.additions\}`/);
   assert.match(fragment, /className = "fr-change-deletions"/);
   assert.match(fragment, /deletions\.textContent = `−\$\{node\.deletions\}`/);
-  assert.match(fragment, /appendLanguageAndCountBadges\(summary, node\)/);
+  assert.match(fragment, /appendTotalCount\(summary, node\)/);
+  assert.match(fragment, /appendLanguageAndKindTags\(summary, node\)/);
+  assert.match(fragment, /className = "fr-metadata-divider"/);
   assert.doesNotMatch(fragment, /fr-count-(?:metric|number|tag)|fr-mixed-badge|mixed contents/i);
   assert.match(fragment, /File \$\{node\.label\}, \$\{countLabel\(node\)\}, \$\{changeLabel\(node\)\}/);
   assert.match(fragment, /@media \(prefers-color-scheme: light\)/);
