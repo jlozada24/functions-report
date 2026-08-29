@@ -406,6 +406,14 @@
     color: var(--fr-red);
   }
 
+  #functions-report-e4527d22e883f3c2 .fr-metadata-divider {
+    align-self: center;
+    block-size: 12px;
+    inline-size: 1px;
+    margin-inline: 4px 1px;
+    background: color-mix(in srgb, var(--fr-row-color, var(--fr-muted)) 38%, var(--fr-border));
+  }
+
   #functions-report-e4527d22e883f3c2 .fr-callable {
     position: relative;
     min-inline-size: 0;
@@ -845,7 +853,17 @@
       element.append(marker);
     };
 
-    const appendLanguageAndCountBadges = (container, node) => {
+    const appendTotalCount = (container, node) => {
+      const count = document.createElement("span");
+      count.className = "fr-total-count";
+      count.textContent = String(
+        node.kind === "folder" ? node.fileCount : node.callableCount,
+      );
+      count.setAttribute("aria-hidden", "true");
+      container.append(count);
+    };
+
+    const appendLanguageAndKindTags = (container, node) => {
       for (const language of node.languages) {
         const tag = document.createElement("span");
         tag.className = "fr-language-tag";
@@ -860,13 +878,6 @@
         tag.setAttribute("aria-hidden", "true");
         container.append(tag);
       }
-      const count = document.createElement("span");
-      count.className = "fr-total-count";
-      count.textContent = String(
-        node.kind === "folder" ? node.fileCount : node.callableCount,
-      );
-      count.setAttribute("aria-hidden", "true");
-      container.append(count);
     };
 
     const appendNote = (container, detail) => {
@@ -1034,7 +1045,7 @@
           label.className = "fr-node-label";
           label.textContent = node.kind === "folder" ? `${node.label}/` : node.label;
           summary.append(label);
-          appendLanguageAndCountBadges(summary, node);
+          appendTotalCount(summary, node);
           const changes = document.createElement("span");
           changes.className = "fr-change-stats";
           changes.setAttribute("aria-hidden", "true");
@@ -1046,6 +1057,11 @@
           deletions.textContent = `−${node.deletions}`;
           changes.append(additions, deletions);
           summary.append(changes);
+          const divider = document.createElement("span");
+          divider.className = "fr-metadata-divider";
+          divider.setAttribute("aria-hidden", "true");
+          summary.append(divider);
+          appendLanguageAndKindTags(summary, node);
           addAnnotationMarker(summary);
           setNodeAccessibleLabel(summary);
           details.append(summary, createList(node.children));
