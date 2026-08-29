@@ -24,6 +24,7 @@ Read [references/report-input.schema.json](references/report-input.schema.json),
 - Add `returns` only when a source-supported return type or result shape materially improves understanding.
 - Let a self-explanatory signature stand alone. Add `description` only when one concise responsibility statement is needed.
 - Add `uses` or `updates` only for an architecturally important implicit dependency, state mutation, persistence effect, or other side effect.
+- For an ordinary report, omit each file's optional `changes` object so its green addition and red deletion figures remain zero. For a proposal with supported change counts, set `changes.additions` and `changes.deletions` on each file; folder figures aggregate their descendant files.
 - Do not add annotations, source excerpts, full-path display fields, call graphs, filters, or old report sections to the input.
 
 ## Render and present
@@ -34,9 +35,9 @@ From the skill directory, generate the report with:
 node scripts/render-report.mjs <input.json> <output.html>
 ```
 
-The output is a self-contained HTML fragment. When the current interface supports inline visualizations, present that fragment as the report. It provides native disclosure controls at every folder, file, and callable level, visible-node keyboard navigation, and one in-memory annotation per folder, file, or callable. Its visible `Copy annotations` button and plain `C` shortcut copy only the current annotations as portable Markdown. Do not claim that annotations persist or add any host messaging, file transfer, storage, or other transport.
+The output is a self-contained HTML fragment. When the current interface supports inline visualizations, present that fragment as the report. It provides native disclosure controls at every folder, file, and detail-bearing callable level, visible-node keyboard navigation, and one in-memory annotation per folder, file, callable, or callable detail row. Its visible `Copy annotations` button and plain `C` shortcut copy only the current annotations as portable Markdown. Do not claim that annotations persist or add any host messaging, file transfer, storage, or other transport.
 
-The rendered hierarchy shows a visible count badge on every structural node. Folder badges count all defining files below that folder, including files in nested folders; file badges count the callables directly reported for that file.
+The rendered hierarchy shows a visible count badge and compact green addition/red deletion figures on every structural node. Folder badges count all defining files below that folder, including files in nested folders; file badges count the callables directly reported for that file. Ordinary reports show `+0 −0`; proposal inputs can supply per-file changes, which aggregate into folder figures.
 
 If inline visualization is unavailable, return the same normalized hierarchy as exactly one fully indented fenced `text` block. Do not present both forms unless the user asks. Apart from a brief unresolved-path notice when needed, add no prose or separate sections.
 

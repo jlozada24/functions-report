@@ -115,10 +115,12 @@ test("folders count descendant files and files count their callables", () => {
     inputWith([
       {
         path: "/repo/src/client/request.ts",
+        changes: { additions: 7, deletions: 2 },
         callables: [callable("send()"), callable("cancel()")],
       },
       {
         path: "/repo/src/server/handler.ts",
+        changes: { additions: 3, deletions: 1 },
         callables: [callable("handle()")],
       },
       {
@@ -133,9 +135,28 @@ test("folders count descendant files and files count their callables", () => {
   const handler = server.children.find((node) => node.kind === "file");
 
   assert.equal(client.fileCount, 1);
+  assert.deepEqual(
+    { additions: client.additions, deletions: client.deletions },
+    { additions: 7, deletions: 2 },
+  );
   assert.equal(client.children[0].callableCount, 2);
+  assert.deepEqual(
+    {
+      additions: client.children[0].additions,
+      deletions: client.children[0].deletions,
+    },
+    { additions: 7, deletions: 2 },
+  );
   assert.equal(server.fileCount, 2);
+  assert.deepEqual(
+    { additions: server.additions, deletions: server.deletions },
+    { additions: 3, deletions: 1 },
+  );
   assert.equal(routes.fileCount, 1);
+  assert.deepEqual(
+    { additions: routes.additions, deletions: routes.deletions },
+    { additions: 0, deletions: 0 },
+  );
   assert.equal(routes.children[0].callableCount, 3);
   assert.equal(handler.callableCount, 1);
 });
@@ -194,6 +215,32 @@ test("annotation target IDs remain stable when optional note text changes", () =
     collectIds(normalizeReport(base).tree),
     collectIds(normalizeReport(changed).tree),
   );
+  const baseDetail = normalizeReport(base).tree[0].details[0];
+  const changedDetail = normalizeReport(changed).tree[0].details[0];
+  assert.equal(baseDetail.id, changedDetail.id);
+  assert.match(baseDetail.id, /^node-[a-f0-9]{20}$/);
+  assert.equal(baseDetail.breadcrumb, "run(task) › Description");
+});
+
+test("callable detail annotations copy with their own stable target", () => {
+  const normalized = normalizeReport(
+    inputWith([
+      {
+        path: "/repo/src/request.ts",
+        callables: [callable("send()", { uses: "Configured transport." })],
+      },
+    ]),
+  );
+  const detail = normalized.tree[0].details[0];
+  const bundle = createAnnotationBundle(
+    normalized,
+    new Map([[detail.id, "Confirm this dependency."]]),
+  );
+
+  assert.equal(bundle.count, 1);
+  assert.match(bundle.text, /## `send\(\) › Uses`/);
+  assert.ok(bundle.text.includes("Node ID: `" + detail.id + "`"));
+  assert.match(bundle.text, /Confirm this dependency\./);
 });
 
 test("annotation bundles use stable IDs, structural breadcrumbs, tree order, and exact multiline text", () => {
@@ -265,6 +312,16 @@ test("malformed schemas fail with clear field paths", () => {
         },
       ]),
       /unsupported property "annotation"/,
+    ],
+    [
+      inputWith([
+        {
+          path: "/repo/a.js",
+          changes: { additions: -1, deletions: 0 },
+          callables: [{ signature: "run()" }],
+        },
+      ]),
+      /\$\.files\[0\]\.changes\.additions/,
     ],
   ];
 
@@ -395,7 +452,7 @@ test("a callable with hidden detail renders as an open native disclosure", () =>
     template,
   );
 
-  assert.match(fragment, /const hasDetails = Boolean\(node\.description \|\| node\.uses \|\| node\.updates\)/);
+  assert.match(fragment, /const hasDetails = Boolean\(node\.details\?\.length\)/);
   assert.match(fragment, /document\.createElement\(hasDetails \? "summary" : "button"\)/);
   assert.match(fragment, /if \(hasDetails\) \{/);
   assert.match(fragment, /const disclosure = document\.createElement\("details"\)/);
@@ -403,9 +460,7 @@ test("a callable with hidden detail renders as an open native disclosure", () =>
   assert.match(fragment, /disclosure\.open = true/);
   assert.match(fragment, /callableNode\.className = "fr-tree-row fr-node fr-callable-node"/);
   assert.match(fragment, /content\.className = "fr-callable-content"/);
-  assert.match(fragment, /appendNote\(content, "", node\.description\)/);
-  assert.match(fragment, /appendNote\(content, "Uses", node\.uses\)/);
-  assert.match(fragment, /appendNote\(content, "Updates", node\.updates\)/);
+  assert.match(fragment, /for \(const detail of node\.details\) appendNote\(content, detail\)/);
   assert.match(fragment, /disclosure\.append\(callableNode, content\)/);
   assert.match(fragment, /summary\.fr-callable-node::before/);
   assert.match(fragment, /\.fr-callable-disclosure:not\(\[open\]\) > summary\.fr-callable-node::before/);
@@ -509,15 +564,45 @@ test("callable detail notes are bullet rows in visible keyboard traversal", () =
     template,
   );
 
-  assert.match(fragment, /note\.className = "fr-tree-row fr-note"/);
+  assert.match(fragment, /note\.className = `fr-tree-row fr-node fr-note fr-note-\$\{detail\.field\}`/);
   assert.match(fragment, /note\.tabIndex = -1/);
-  assert.match(fragment, /note\.dataset\.navigationOnly = ""/);
-  assert.match(fragment, /note\.setAttribute\("role", "note"\)/);
+  assert.match(fragment, /note\.dataset\.nodeId = detail\.id/);
+  assert.match(fragment, /note\.dataset\.annotationBreadcrumb = detail\.breadcrumb/);
+  assert.match(fragment, /addAnnotationMarker\(note\)/);
+  assert.match(fragment, /setNodeAccessibleLabel\(note\)/);
   assert.match(fragment, /\.fr-note::before[\s\S]*?content: "•"/);
   assert.match(fragment, /querySelectorAll\("\.fr-tree-row"\)/);
   assert.match(fragment, /event\.target\.closest\?\.\("\.fr-tree-row"\)/);
   assert.match(fragment, /node\.matches\("\.fr-node"\)/);
   assert.match(fragment, /event\.target\.closest\?\.\("\.fr-node"\)/);
+});
+
+test("hierarchy levels use distinct rainbow accents while signatures keep syntax colors", () => {
+  const fragment = renderReport(
+    inputWith([
+      {
+        path: "/repo/client/request.ts",
+        callables: [callable("async send(url)", { description: "Sends it." })],
+      },
+      {
+        path: "/repo/server/handler.ts",
+        callables: [callable("handle(request)")],
+      },
+    ]),
+    template,
+  );
+
+  assert.match(fragment, /--fr-red: #ff3b5c/);
+  assert.match(fragment, /--fr-green: #35f27a/);
+  assert.match(fragment, /--fr-blue: #4d7cff/);
+  assert.match(fragment, /--fr-level-folder: var\(--fr-red\)/);
+  assert.match(fragment, /--fr-level-file: var\(--fr-cyan\)/);
+  assert.match(fragment, /--fr-level-callable: var\(--fr-purple\)/);
+  assert.match(fragment, /--fr-level-detail: var\(--fr-green\)/);
+  assert.match(fragment, /\.fr-folder > details > summary\.fr-node,[\s\S]*?\.fr-file > details > summary\.fr-node[\s\S]*?background: color-mix/);
+  assert.match(fragment, /\.fr-callable-node \{[\s\S]*?--fr-row-color: var\(--fr-level-callable\)/);
+  assert.match(fragment, /\.fr-syntax-keyword \{ color: var\(--fr-syntax-keyword\); \}/);
+  assert.match(fragment, /\.fr-syntax-parameter \{ color: var\(--fr-syntax-parameter\); \}/);
 });
 
 test("nested hierarchy uses compact disclosure rows instead of stacked cards", () => {
@@ -555,14 +640,18 @@ test("fragment renders the reference-inspired responsive report shell", () => {
 
   assert.match(fragment, /<div class="fr-header">/);
   assert.match(fragment, /<span class="fr-eyebrow">Structural review<\/span>/);
-  assert.match(fragment, /<h1>Functions outline<\/h1>/);
+  assert.doesNotMatch(fragment, /<h1>Functions outline<\/h1>/);
   assert.match(fragment, /<div class="fr-tree-wrap">/);
   assert.match(fragment, /--fr-bg: #0e1014/);
   assert.match(fragment, /background: linear-gradient\(180deg, var\(--fr-header-1\), var\(--fr-header-2\)\)/);
   assert.match(fragment, /border-top: 2px solid var\(--fr-group-color\)/);
   assert.match(fragment, /className = "fr-count-badge"/);
   assert.match(fragment, /count\.setAttribute\("aria-hidden", "true"\)/);
-  assert.match(fragment, /File \$\{node\.label\}, \$\{countLabel\(node\)\}/);
+  assert.match(fragment, /className = "fr-change-additions"/);
+  assert.match(fragment, /additions\.textContent = `\+\$\{node\.additions\}`/);
+  assert.match(fragment, /className = "fr-change-deletions"/);
+  assert.match(fragment, /deletions\.textContent = `−\$\{node\.deletions\}`/);
+  assert.match(fragment, /File \$\{node\.label\}, \$\{countLabel\(node\)\}, \$\{changeLabel\(node\)\}/);
   assert.match(fragment, /@media \(prefers-color-scheme: light\)/);
   assert.match(fragment, /@media \(max-width: 640px\)/);
   assert.doesNotMatch(fragment, /(?:^|[}\s])(?:html|body|:root)\s*\{/m);

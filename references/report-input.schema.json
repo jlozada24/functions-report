@@ -25,6 +25,22 @@
             "pattern": "\\S",
             "description": "Structural path containing all directory segments and the defining filename."
           },
+          "changes": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["additions", "deletions"],
+            "description": "Optional proposal addition and deletion counts. Ordinary reports omit this and render zeroes.",
+            "properties": {
+              "additions": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "deletions": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
           "callables": {
             "type": "array",
             "minItems": 1,

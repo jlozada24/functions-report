@@ -6,7 +6,6 @@
   <div class="fr-header">
     <div class="fr-heading">
       <span class="fr-eyebrow">Structural review</span>
-      <h1>Functions outline</h1>
       <p>Navigate with arrow keys; use Left and Right to collapse or expand. Press Enter or right-click any node to annotate it.</p>
     </div>
     <div class="fr-copy-row">
@@ -64,14 +63,21 @@
     --fr-module-bg: #1a1f30;
     --fr-header-1: #11141c;
     --fr-header-2: #0e1014;
-    --fr-accent: #00d9ff;
-    --fr-orange: #ff7a00;
-    --fr-green: #4dff88;
-    --fr-purple: #c084ff;
+    --fr-accent: #3d7bff;
+    --fr-red: #ff3b5c;
+    --fr-orange: #ff8a00;
+    --fr-yellow: #ffe600;
+    --fr-green: #35f27a;
+    --fr-blue: #4d7cff;
+    --fr-purple: #c45cff;
     --fr-cyan: #00e5ff;
-    --fr-pink: #ff4fd8;
+    --fr-pink: #ff45d4;
     --fr-teal: #00f5d4;
-    --fr-warn: #ffe14d;
+    --fr-warn: var(--fr-yellow);
+    --fr-level-folder: var(--fr-red);
+    --fr-level-file: var(--fr-cyan);
+    --fr-level-callable: var(--fr-purple);
+    --fr-level-detail: var(--fr-green);
     --fr-syntax-keyword: #ff5cff;
     --fr-syntax-name: #ffe66d;
     --fr-syntax-parameter: #5ce1ff;
@@ -127,18 +133,9 @@
     text-transform: uppercase;
   }
 
-  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-heading h1 {
-    margin: 0;
-    color: var(--fr-text);
-    font-size: 19px;
-    font-weight: 650;
-    letter-spacing: 0.2px;
-    line-height: 1.25;
-  }
-
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-heading p {
     max-inline-size: 720px;
-    margin: 4px 0 0;
+    margin: 2px 0 0;
     color: var(--fr-muted);
     font-size: 12px;
     line-height: 1.45;
@@ -218,16 +215,16 @@
     overflow: hidden;
   }
 
-  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-tree > .fr-list > .fr-group:nth-child(7n + 1) { --fr-group-color: var(--fr-orange); }
-  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-tree > .fr-list > .fr-group:nth-child(7n + 2) { --fr-group-color: var(--fr-cyan); }
-  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-tree > .fr-list > .fr-group:nth-child(7n + 3) { --fr-group-color: var(--fr-pink); }
-  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-tree > .fr-list > .fr-group:nth-child(7n + 4) { --fr-group-color: var(--fr-teal); }
-  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-tree > .fr-list > .fr-group:nth-child(7n + 5) { --fr-group-color: var(--fr-green); }
-  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-tree > .fr-list > .fr-group:nth-child(7n + 6) { --fr-group-color: var(--fr-purple); }
-  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-tree > .fr-list > .fr-group:nth-child(7n) { --fr-group-color: var(--fr-warn); }
-
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-tree > .fr-list > .fr-callable {
-    --fr-group-color: var(--fr-accent);
+    --fr-group-color: var(--fr-level-callable);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-folder {
+    --fr-group-color: var(--fr-level-folder);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-file {
+    --fr-group-color: var(--fr-level-file);
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% details > .fr-list {
@@ -268,10 +265,11 @@
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-tree-row[aria-current="true"] {
-    box-shadow: 0 0 0 1px var(--fr-accent), 0 0 0 3px color-mix(in srgb, var(--fr-accent) 22%, transparent);
+    box-shadow: 0 0 0 1px var(--fr-row-color, var(--fr-accent)), 0 0 0 3px color-mix(in srgb, var(--fr-row-color, var(--fr-accent)) 22%, transparent);
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% summary.fr-node {
+    --fr-row-color: var(--fr-group-color, var(--fr-accent));
     padding: 3px 4px;
     cursor: pointer;
     user-select: none;
@@ -287,12 +285,18 @@
     font-weight: 650;
   }
 
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-folder > details > summary.fr-node,
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-file > details > summary.fr-node {
+    background: color-mix(in srgb, var(--fr-row-color) 13%, var(--fr-bg-2));
+    border-bottom: 1px solid color-mix(in srgb, var(--fr-row-color) 28%, var(--fr-border));
+  }
+
   #%%FUNCTIONS_REPORT_ROOT_ID%% summary.fr-node:hover {
     background: color-mix(in srgb, var(--fr-group-color, var(--fr-accent)) 12%, var(--fr-button-hover));
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% summary.fr-node::marker {
-    color: var(--fr-muted);
+    color: var(--fr-row-color, var(--fr-muted));
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-node-label,
@@ -309,6 +313,7 @@
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-node-label {
+    color: var(--fr-row-color, var(--fr-text));
     font-size: 12.5px;
     font-weight: 600;
   }
@@ -332,9 +337,26 @@
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-tree > .fr-list > .fr-group > details > summary .fr-count-badge {
-    color: color-mix(in srgb, var(--fr-group-color) 82%, var(--fr-text));
-    background: color-mix(in srgb, var(--fr-group-color) 12%, var(--fr-bg-3));
-    border-color: color-mix(in srgb, var(--fr-group-color) 35%, var(--fr-border));
+    color: color-mix(in srgb, var(--fr-row-color) 82%, var(--fr-text));
+    background: color-mix(in srgb, var(--fr-row-color) 12%, var(--fr-bg-3));
+    border-color: color-mix(in srgb, var(--fr-row-color) 35%, var(--fr-border));
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-change-stats {
+    display: inline-flex;
+    gap: 3px;
+    align-items: baseline;
+    margin-inline-start: 2px;
+    font: 700 10px/1.2 "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    white-space: nowrap;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-change-additions {
+    color: var(--fr-green);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-change-deletions {
+    color: var(--fr-red);
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-callable {
@@ -352,6 +374,7 @@
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-callable-node {
+    --fr-row-color: var(--fr-level-callable);
     display: flex;
     flex-wrap: wrap;
     gap: 2px 4px;
@@ -376,7 +399,7 @@
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% button.fr-callable-node::before {
     flex: 0 0 auto;
-    color: color-mix(in srgb, var(--fr-group-color, var(--fr-accent)) 78%, var(--fr-text));
+    color: color-mix(in srgb, var(--fr-row-color) 78%, var(--fr-text));
     font-size: 13px;
     line-height: 1;
     content: "•";
@@ -393,7 +416,7 @@
   #%%FUNCTIONS_REPORT_ROOT_ID%% summary.fr-callable-node::before {
     display: inline-block;
     flex: 0 0 auto;
-    color: color-mix(in srgb, var(--fr-group-color, var(--fr-accent)) 72%, var(--fr-muted));
+    color: color-mix(in srgb, var(--fr-row-color) 72%, var(--fr-muted));
     font-size: 13px;
     font-weight: 700;
     line-height: 1;
@@ -440,22 +463,37 @@
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-note {
+    --fr-row-color: var(--fr-level-detail);
+    appearance: none;
     display: flex;
     gap: 4px;
     align-items: baseline;
     margin: 0 3px 2px 14px;
     padding: 1px 4px;
+    inline-size: calc(100% - 17px);
     color: var(--fr-muted);
     background: transparent;
-    border-inline-start: 1px solid color-mix(in srgb, var(--fr-accent) 65%, var(--fr-divider));
+    border: 0;
+    border-inline-start: 1px solid color-mix(in srgb, var(--fr-row-color) 65%, var(--fr-divider));
     border-radius: 0;
+    font-family: inherit;
     font-size: 11.5px;
     line-height: 1.45;
+    text-align: start;
+    cursor: pointer;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-note-uses {
+    --fr-row-color: var(--fr-yellow);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-note-updates {
+    --fr-row-color: var(--fr-orange);
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-note::before {
     flex: 0 0 auto;
-    color: color-mix(in srgb, var(--fr-group-color, var(--fr-accent)) 78%, var(--fr-text));
+    color: color-mix(in srgb, var(--fr-row-color) 82%, var(--fr-text));
     font-size: 13px;
     line-height: 1;
     content: "•";
@@ -466,12 +504,16 @@
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-note:hover {
-    background: color-mix(in srgb, var(--fr-accent) 7%, transparent);
+    background: color-mix(in srgb, var(--fr-row-color) 8%, transparent);
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-note-label,
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-annotation-marker {
     font-weight: 700;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-note-label {
+    color: var(--fr-row-color);
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-annotation-marker {
@@ -573,14 +615,21 @@
       --fr-module-bg: #eef0f4;
       --fr-header-1: #fafafc;
       --fr-header-2: #ffffff;
-      --fr-accent: #0068ff;
-      --fr-orange: #d84a00;
+      --fr-accent: #005bd8;
+      --fr-red: #c9194b;
+      --fr-orange: #c2410c;
+      --fr-yellow: #8a6500;
       --fr-green: #087f3f;
+      --fr-blue: #1849b5;
       --fr-purple: #7a21c9;
       --fr-cyan: #007c99;
       --fr-pink: #c0008f;
       --fr-teal: #007c6f;
       --fr-warn: #8a6500;
+      --fr-level-folder: var(--fr-red);
+      --fr-level-file: var(--fr-cyan);
+      --fr-level-callable: var(--fr-purple);
+      --fr-level-detail: var(--fr-green);
       --fr-syntax-keyword: #9c00c8;
       --fr-syntax-name: #7a5100;
       --fr-syntax-parameter: #005ac2;
@@ -637,7 +686,8 @@
   @media (pointer: coarse) {
     #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-copy-button,
     #%%FUNCTIONS_REPORT_ROOT_ID%% summary.fr-node,
-    #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-callable-node {
+    #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-callable-node,
+    #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-note {
       min-block-size: 44px;
       padding-block: 10px;
     }
@@ -698,9 +748,12 @@
       return `${count} ${noun}${count === 1 ? "" : "s"}`;
     };
 
+    const changeLabel = (node) =>
+      `${node.additions} addition${node.additions === 1 ? "" : "s"}, ${node.deletions} deletion${node.deletions === 1 ? "" : "s"}`;
+
     const nodeLabel = (node) => {
-      if (node.kind === "folder") return `Folder ${node.label}, ${countLabel(node)}`;
-      if (node.kind === "file") return `File ${node.label}, ${countLabel(node)}`;
+      if (node.kind === "folder") return `Folder ${node.label}, ${countLabel(node)}, ${changeLabel(node)}`;
+      if (node.kind === "file") return `File ${node.label}, ${countLabel(node)}, ${changeLabel(node)}`;
       return `Callable ${node.signature}${node.returns ? `, returns ${node.returns}` : ""}`;
     };
 
@@ -726,24 +779,28 @@
       element.append(marker);
     };
 
-    const appendNote = (container, label, text) => {
-      if (!text) return;
-      const note = document.createElement("div");
-      note.className = "fr-tree-row fr-note";
+    const appendNote = (container, detail) => {
+      if (!detail?.text) return;
+      const note = document.createElement("button");
+      note.type = "button";
+      note.className = `fr-tree-row fr-node fr-note fr-note-${detail.field}`;
       note.tabIndex = -1;
-      note.dataset.navigationOnly = "";
-      note.setAttribute("role", "note");
-      note.setAttribute("aria-label", label ? `${label}: ${text}` : text);
+      note.dataset.nodeId = detail.id;
+      note.dataset.annotationLabel = `${detail.label}: ${detail.text}`;
+      note.dataset.annotationBreadcrumb = detail.breadcrumb;
+      note.setAttribute("aria-keyshortcuts", "Enter");
       const noteContent = document.createElement("span");
       noteContent.className = "fr-note-content";
-      if (label) {
+      if (detail.field !== "description") {
         const noteLabel = document.createElement("span");
         noteLabel.className = "fr-note-label";
-        noteLabel.textContent = `${label}: `;
+        noteLabel.textContent = `${detail.label}: `;
         noteContent.append(noteLabel);
       }
-      noteContent.append(document.createTextNode(text));
+      noteContent.append(document.createTextNode(detail.text));
       note.append(noteContent);
+      addAnnotationMarker(note);
+      setNodeAccessibleLabel(note);
       container.append(note);
     };
 
@@ -892,13 +949,24 @@
           count.textContent = countLabel(node);
           count.setAttribute("aria-hidden", "true");
           summary.append(count);
+          const changes = document.createElement("span");
+          changes.className = "fr-change-stats";
+          changes.setAttribute("aria-hidden", "true");
+          const additions = document.createElement("span");
+          additions.className = "fr-change-additions";
+          additions.textContent = `+${node.additions}`;
+          const deletions = document.createElement("span");
+          deletions.className = "fr-change-deletions";
+          deletions.textContent = `−${node.deletions}`;
+          changes.append(additions, deletions);
+          summary.append(changes);
           addAnnotationMarker(summary);
           setNodeAccessibleLabel(summary);
           details.append(summary, createList(node.children));
           item.append(details);
         } else {
           item.className = "fr-callable";
-          const hasDetails = Boolean(node.description || node.uses || node.updates);
+          const hasDetails = Boolean(node.details?.length);
           const callableNode = document.createElement(hasDetails ? "summary" : "button");
           if (!hasDetails) callableNode.type = "button";
           callableNode.className = "fr-tree-row fr-node fr-callable-node";
@@ -931,9 +999,7 @@
             disclosure.addEventListener("toggle", reconcileCollapsedDisclosure);
             const content = document.createElement("div");
             content.className = "fr-callable-content";
-            appendNote(content, "", node.description);
-            appendNote(content, "Uses", node.uses);
-            appendNote(content, "Updates", node.updates);
+            for (const detail of node.details) appendNote(content, detail);
             disclosure.append(callableNode, content);
             item.append(disclosure);
           } else {

@@ -13,6 +13,11 @@ const TEMPLATE_PATH = fileURLToPath(
 const ROOT_ID_TOKEN = "%%FUNCTIONS_REPORT_ROOT_ID%%";
 const MODEL_TOKEN = "%%FUNCTIONS_REPORT_MODEL_JSON%%";
 const OPTIONAL_CALLABLE_FIELDS = ["returns", "description", "uses", "updates"];
+const CALLABLE_DETAIL_FIELDS = [
+  ["description", "Description"],
+  ["uses", "Uses"],
+  ["updates", "Updates"],
+];
 
 export class ReportInputError extends Error {
   constructor(message) {
@@ -50,6 +55,12 @@ function assertAllowedKeys(value, allowedKeys, path) {
 function assertNonBlankString(value, path) {
   if (typeof value !== "string" || value.trim().length === 0) {
     failInput(path, "must be a non-empty string");
+  }
+}
+
+function assertNonNegativeInteger(value, path) {
+  if (!Number.isInteger(value) || value < 0) {
+    failInput(path, "must be a non-negative integer");
   }
 }
 
@@ -116,7 +127,14 @@ export function validateReportInput(input) {
   input.files.forEach((file, fileIndex) => {
     const filePath = `$.files[${fileIndex}]`;
     assertPlainObject(file, filePath);
-    assertAllowedKeys(file, ["path", "callables"], filePath);
+    assertAllowedKeys(file, ["path", "callables", "changes"], filePath);
+
+    if (Object.hasOwn(file, "changes")) {
+      assertPlainObject(file.changes, `${filePath}.changes`);
+      assertAllowedKeys(file.changes, ["additions", "deletions"], `${filePath}.changes`);
+      assertNonNegativeInteger(file.changes.additions, `${filePath}.changes.additions`);
+      assertNonNegativeInteger(file.changes.deletions, `${filePath}.changes.deletions`);
+    }
 
     const segments = splitStructuralPath(file.path, `${filePath}.path`);
     const normalizedPath = segments.join("/");
@@ -247,6 +265,23 @@ function countDescendantFiles(children) {
   }, 0);
 }
 
+function countDescendantChanges(children) {
+  return children.reduce(
+    (totals, child) => {
+      if (child.kind === "file") {
+        totals.additions += child.changes?.additions ?? 0;
+        totals.deletions += child.changes?.deletions ?? 0;
+      } else if (child.kind === "folder") {
+        const nested = countDescendantChanges(child.children);
+        totals.additions += nested.additions;
+        totals.deletions += nested.deletions;
+      }
+      return totals;
+    },
+    { additions: 0, deletions: 0 },
+  );
+}
+
 function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
   const signatureCounts = new Map();
 
@@ -255,10 +290,15 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
       const identity = [...ancestors, `${child.kind}:${child.label}`];
       const displayLabel = child.kind === "folder" ? `${child.label}/` : child.label;
       const childBreadcrumbParts = [...breadcrumbParts, displayLabel];
+      const changes = child.kind === "folder"
+        ? countDescendantChanges(child.children)
+        : (child.changes ?? { additions: 0, deletions: 0 });
       return {
         id: `node-${digest(identity.join("\u001f"))}`,
         kind: child.kind,
         label: child.label,
+        additions: changes.additions,
+        deletions: changes.deletions,
         ...(child.kind === "folder"
           ? { fileCount: countDescendantFiles(child.children) }
           : {
@@ -287,6 +327,18 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
     for (const field of OPTIONAL_CALLABLE_FIELDS) {
       if (Object.hasOwn(child, field)) result[field] = child[field];
     }
+    const details = CALLABLE_DETAIL_FIELDS.flatMap(([field, label]) => {
+      if (!Object.hasOwn(child, field)) return [];
+      return [{
+        id: `node-${digest([...identity, `detail:${field}`].join("\u001f"))}`,
+        kind: "detail",
+        field,
+        label,
+        text: child[field],
+        breadcrumb: [...breadcrumbParts, child.signature, label].join(" › "),
+      }];
+    });
+    if (details.length > 0) result.details = details;
     return result;
   });
 }
@@ -303,6 +355,7 @@ export function createAnnotationBundle(model, annotations) {
       if (typeof annotation === "string" && annotation.trim().length > 0) {
         entries.push({ id: node.id, breadcrumb: node.breadcrumb, annotation });
       }
+      if (node.details) visit(node.details);
       if (node.children) visit(node.children);
     }
   };
@@ -343,6 +396,7 @@ export function normalizeReport(input) {
     .map((file) => ({
       segments: splitStructuralPath(file.path),
       callables: file.callables,
+      changes: file.changes ?? { additions: 0, deletions: 0 },
     }))
     .sort((left, right) => compareSegments(left.segments, right.segments));
   const commonPrefixLength = longestCommonPrefixLength(
@@ -358,6 +412,7 @@ export function normalizeReport(input) {
     remainingSegments.forEach((segment, index) => {
       const kind = index === remainingSegments.length - 1 ? "file" : "folder";
       const group = findOrCreateGroup(children, kind, segment);
+      if (kind === "file") group.changes = file.changes;
       children = group.children;
     });
 
