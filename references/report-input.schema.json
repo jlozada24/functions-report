@@ -33,7 +33,7 @@
             "type": "object",
             "additionalProperties": false,
             "required": ["additions", "deletions"],
-            "description": "Optional proposal addition and deletion counts. Ordinary reports omit this and render zeroes.",
+            "description": "Optional callable addition and deletion counts not already represented by proposal-marked callable rows. Ordinary reports omit this and render zeroes. These counts adjust the file's post-change total once.",
             "properties": {
               "additions": {
                 "type": "integer",

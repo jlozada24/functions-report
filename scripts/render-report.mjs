@@ -36,7 +36,7 @@ const REQUIRED_TEMPLATE_CONTRACT = [
     needles: [
       ".fr-total-count",
       'count.className = "fr-total-count"',
-      'node.kind === "folder" ? node.fileCount : node.callableCount',
+      "node.finalCount",
     ],
   },
   {
@@ -354,6 +354,18 @@ function countDescendantFiles(children) {
   }, 0);
 }
 
+function countFinalDescendantFiles(children) {
+  return children.reduce((count, child) => {
+    if (child.kind === "file") {
+      return count + (child.proposal === "remove" ? 0 : 1);
+    }
+    if (child.kind === "folder") {
+      return count + countFinalDescendantFiles(child.children);
+    }
+    return count;
+  }, 0);
+}
+
 function sourceLanguageForFile(label) {
   const lowerLabel = label.toLowerCase();
   if (lowerLabel === "makefile") return "Make";
@@ -426,6 +438,21 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
               (child.changes?.deletions ?? 0) +
               countDirectProposalChildren(child.children, "callable", "remove"),
           };
+      const finalCount = child.kind === "folder"
+        ? countFinalDescendantFiles(child.children)
+        : child.proposal === "remove"
+          ? 0
+          : child.children.filter(
+              (descendant) =>
+                descendant.kind === "callable" && descendant.proposal !== "remove",
+            ).length +
+            (child.changes?.additions ?? 0) -
+            (child.changes?.deletions ?? 0);
+      if (finalCount < 0) {
+        throw new ReportInputError(
+          `Post-change count for ${child.kind} ${JSON.stringify(child.label)} cannot be negative`,
+        );
+      }
       return {
         id: `node-${digest(identity.join("\u001f"))}`,
         kind: child.kind,
@@ -440,6 +467,7 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
           : ["Functions"],
         additions: changes.additions,
         deletions: changes.deletions,
+        finalCount,
         ...(child.kind === "folder"
           ? {
               fileCount: countDescendantFiles(child.children),

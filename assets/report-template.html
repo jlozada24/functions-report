@@ -850,7 +850,7 @@
     let editorNode = null;
 
     const countLabel = (node) => {
-      const count = node.kind === "folder" ? node.fileCount : node.callableCount;
+      const count = node.finalCount;
       const noun = node.kind === "folder" ? "file" : "function";
       return `${count} ${noun}${count === 1 ? "" : "s"}`;
     };
@@ -902,9 +902,7 @@
     const appendTotalCount = (container, node) => {
       const count = document.createElement("span");
       count.className = "fr-total-count";
-      count.textContent = String(
-        node.kind === "folder" ? node.fileCount : node.callableCount,
-      );
+      count.textContent = String(node.finalCount);
       count.setAttribute("aria-hidden", "true");
       container.append(count);
     };

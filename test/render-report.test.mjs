@@ -143,6 +143,7 @@ test("folder tags describe contents while file tags describe inventory", () => {
   const handler = server.children.find((node) => node.kind === "file");
 
   assert.equal(client.fileCount, 1);
+  assert.equal(client.finalCount, 1);
   assert.deepEqual(client.languages, ["JavaScript"]);
   assert.deepEqual(client.itemKinds, []);
   assert.deepEqual(
@@ -150,6 +151,7 @@ test("folder tags describe contents while file tags describe inventory", () => {
     { additions: 7, deletions: 2 },
   );
   assert.equal(client.children[0].callableCount, 2);
+  assert.equal(client.children[0].finalCount, 7);
   assert.deepEqual(client.children[0].languages, []);
   assert.deepEqual(client.children[0].itemKinds, ["Functions"]);
   assert.deepEqual(
@@ -160,6 +162,7 @@ test("folder tags describe contents while file tags describe inventory", () => {
     { additions: 7, deletions: 2 },
   );
   assert.equal(server.fileCount, 2);
+  assert.equal(server.finalCount, 2);
   assert.deepEqual(server.languages, ["Shell", "TypeScript"]);
   assert.deepEqual(server.itemKinds, ["Folders"]);
   assert.deepEqual(
@@ -167,6 +170,7 @@ test("folder tags describe contents while file tags describe inventory", () => {
     { additions: 3, deletions: 1 },
   );
   assert.equal(routes.fileCount, 1);
+  assert.equal(routes.finalCount, 1);
   assert.deepEqual(routes.languages, ["Shell"]);
   assert.deepEqual(routes.itemKinds, []);
   assert.deepEqual(
@@ -175,6 +179,7 @@ test("folder tags describe contents while file tags describe inventory", () => {
   );
   assert.equal(routes.children[0].callableCount, 3);
   assert.equal(handler.callableCount, 1);
+  assert.equal(handler.finalCount, 3);
 });
 
 test("structural node IDs remain stable when visible counts change", () => {
@@ -684,7 +689,7 @@ test("fragment renders the reference-inspired responsive report shell", () => {
   assert.match(fragment, /className = "fr-item-kind-tag"/);
   assert.match(fragment, /tag\.textContent = kind/);
   assert.match(fragment, /className = "fr-total-count"/);
-  assert.match(fragment, /node\.kind === "folder" \? node\.fileCount : node\.callableCount/);
+  assert.match(fragment, /count\.textContent = String\(node\.finalCount\)/);
   assert.match(fragment, /className = "fr-change-additions"/);
   assert.match(fragment, /additions\.textContent = `\+\$\{node\.additions\}`/);
   assert.match(fragment, /className = "fr-change-deletions"/);
