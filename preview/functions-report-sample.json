@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "files": [
+    {
+      "path": "/repo/src/client/request.ts",
+      "callables": [
+        {
+          "signature": "async sendRequest(url, { signal, retries = 2 })",
+          "returns": "Promise<Response>",
+          "description": "Builds and sends a cancellable request.",
+          "uses": "The configured HTTP transport and retry policy."
+        },
+        {
+          "signature": "parseResponse(response)",
+          "returns": "Result<Payload>"
+        }
+      ]
+    },
+    {
+      "path": "/repo/src/server/routes/health.ts",
+      "callables": [
+        {
+          "signature": "healthCheck()",
+          "returns": "HealthStatus",
+          "description": "Reports process and dependency readiness."
+        }
+      ]
+    },
+    {
+      "path": "/repo/src/server/handler.ts",
+      "callables": [
+        {
+          "signature": "handleRequest(request, context)",
+          "returns": "Response",
+          "updates": "Records request timing and completion status."
+        },
+        {
+          "signature": "authorize(token, scope = \"read\")",
+          "returns": "Authorization"
+        }
+      ]
+    }
+  ]
+}

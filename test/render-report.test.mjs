@@ -10,16 +10,24 @@ import {
   MAX_FRAGMENT_BYTES,
   ReportInputError,
   ReportOutputError,
+  assertTemplateContract,
   createAnnotationBundle,
   normalizeReport,
   renderReport,
   validateReportInput,
+  wrapStandaloneDocument,
 } from "../scripts/render-report.mjs";
 
 const testDirectory = dirname(fileURLToPath(import.meta.url));
 const repositoryDirectory = dirname(testDirectory);
 const templatePath = join(repositoryDirectory, "assets", "report-template.html");
 const rendererPath = join(repositoryDirectory, "scripts", "render-report.mjs");
+const sampleInputPath = join(repositoryDirectory, "preview", "functions-report-sample.json");
+const samplePreviewPath = join(
+  repositoryDirectory,
+  "preview",
+  "functions-report-interactive-preview.html",
+);
 const template = await readFile(templatePath, "utf8");
 
 function inputWith(files) {
@@ -691,6 +699,56 @@ test("fragment renders the reference-inspired responsive report shell", () => {
   assert.doesNotMatch(fragment, /(?:^|[}\s])(?:html|body|:root)\s*\{/m);
 });
 
+test("template contract rejects removal of required report controls and badges", () => {
+  const brokenTemplates = [
+    ["keyboard shortcut legend", template.replace("<kbd>←</kbd> Collapse", "Collapse")],
+    ["copy annotations control", template.replace("data-copy-annotations", "data-copy")],
+    ["prominent total count badge", template.replace('count.className = "fr-total-count"', 'count.className = "fr-count"')],
+    ["addition and deletion figures", template.replace('deletions.textContent = `−${node.deletions}`', 'deletions.textContent = String(node.deletions)')],
+    ["metadata divider", template.replace('divider.className = "fr-metadata-divider"', 'divider.className = "fr-divider"')],
+    ["language and inventory badges", template.replace('tag.className = "fr-item-kind-tag"', 'tag.className = "fr-tag"')],
+  ];
+
+  assert.doesNotThrow(() => assertTemplateContract(template));
+  for (const [requirement, brokenTemplate] of brokenTemplates) {
+    assert.throws(
+      () => assertTemplateContract(brokenTemplate),
+      (error) =>
+        error instanceof ReportOutputError && error.message.includes(requirement),
+    );
+  }
+});
+
+test("standalone preview wrapper declares UTF-8 before Unicode report content", () => {
+  const fragment = renderReport(
+    inputWith([
+      {
+        path: "/repo/src/report.ts",
+        callables: [callable("renderReport(input)")],
+      },
+    ]),
+    template,
+  );
+  const document = wrapStandaloneDocument(fragment);
+
+  assert.match(document, /^<!doctype html>\n<html lang="en">/);
+  assert.match(document, /<meta charset="utf-8">/);
+  assert.ok(document.indexOf('<meta charset="utf-8">') < document.indexOf("↑"));
+  assert.match(document, /<meta name="viewport" content="width=device-width, initial-scale=1">/);
+  assert.match(document, /<title>Functions Report — Interactive Preview<\/title>/);
+  assert.match(document, /<kbd>↑<\/kbd><kbd>↓<\/kbd> Navigate/);
+  assert.match(document, /deletions\.textContent = `−\$\{node\.deletions\}`/);
+  assert.match(document, /<\/body>\n<\/html>\n$/);
+});
+
+test("checked-in sample preview is reproducible from template and data only", async () => {
+  const sampleInput = JSON.parse(await readFile(sampleInputPath, "utf8"));
+  const checkedInPreview = await readFile(samplePreviewPath, "utf8");
+  const generatedPreview = wrapStandaloneDocument(renderReport(sampleInput, template));
+
+  assert.equal(checkedInPreview, generatedPreview);
+});
+
 test("fragments at or above the byte limit are rejected", () => {
   const input = inputWith([
     {
@@ -712,7 +770,8 @@ test("CLI help succeeds and malformed JSON exits nonzero", async () => {
     encoding: "utf8",
   });
   assert.equal(help.status, 0);
-  assert.match(help.stdout, /Usage: node scripts\/render-report\.mjs/);
+  assert.match(help.stdout, /Usage: node scripts\/render-report\.mjs \[--standalone\]/);
+  assert.match(help.stdout, /UTF-8 HTML document/);
 
   const temporaryDirectory = await mkdtemp(join(tmpdir(), "functions-report-test-"));
   try {
@@ -724,6 +783,25 @@ test("CLI help succeeds and malformed JSON exits nonzero", async () => {
     });
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /Invalid JSON/);
+
+    const validInputPath = join(temporaryDirectory, "valid.json");
+    const standaloneOutputPath = join(temporaryDirectory, "standalone.html");
+    await writeFile(
+      validInputPath,
+      JSON.stringify(inputWith([
+        { path: "/repo/src/report.ts", callables: [callable("render()") ] },
+      ])),
+      "utf8",
+    );
+    const standaloneResult = spawnSync(
+      process.execPath,
+      [rendererPath, "--standalone", validInputPath, standaloneOutputPath],
+      { encoding: "utf8" },
+    );
+    assert.equal(standaloneResult.status, 0, standaloneResult.stderr);
+    const standaloneOutput = await readFile(standaloneOutputPath, "utf8");
+    assert.match(standaloneOutput, /^<!doctype html>/);
+    assert.match(standaloneOutput, /<meta charset="utf-8">/);
   } finally {
     await rm(temporaryDirectory, { recursive: true, force: true });
   }

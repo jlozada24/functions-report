@@ -12,6 +12,56 @@ const TEMPLATE_PATH = fileURLToPath(
 );
 const ROOT_ID_TOKEN = "%%FUNCTIONS_REPORT_ROOT_ID%%";
 const MODEL_TOKEN = "%%FUNCTIONS_REPORT_MODEL_JSON%%";
+const REQUIRED_TEMPLATE_CONTRACT = [
+  {
+    label: "keyboard shortcut legend",
+    needles: [
+      "<kbd>↑</kbd><kbd>↓</kbd> Navigate",
+      "<kbd>←</kbd> Collapse",
+      "<kbd>→</kbd> Expand",
+      "<kbd>↵</kbd> Annotate",
+      "<kbd>R-click</kbd> Annotate",
+    ],
+  },
+  {
+    label: "copy annotations control",
+    needles: [
+      "data-copy-annotations\n        aria-keyshortcuts=\"C\"",
+      "<span>Copy annotations</span>",
+      'root.querySelector("[data-copy-annotations]")',
+    ],
+  },
+  {
+    label: "prominent total count badge",
+    needles: [
+      ".fr-total-count",
+      'count.className = "fr-total-count"',
+      'node.kind === "folder" ? node.fileCount : node.callableCount',
+    ],
+  },
+  {
+    label: "addition and deletion figures",
+    needles: [
+      ".fr-change-additions",
+      ".fr-change-deletions",
+      'additions.textContent = `+${node.additions}`',
+      'deletions.textContent = `−${node.deletions}`',
+    ],
+  },
+  {
+    label: "metadata divider",
+    needles: [".fr-metadata-divider", 'divider.className = "fr-metadata-divider"'],
+  },
+  {
+    label: "language and inventory badges",
+    needles: [
+      ".fr-language-tag",
+      ".fr-item-kind-tag",
+      'tag.className = "fr-language-tag"',
+      'tag.className = "fr-item-kind-tag"',
+    ],
+  },
+];
 const OPTIONAL_CALLABLE_FIELDS = ["returns", "description", "uses", "updates"];
 const CALLABLE_DETAIL_FIELDS = [
   ["description", "Description"],
@@ -503,7 +553,7 @@ function assertFragmentOnly(fragment) {
   }
 }
 
-export function renderNormalizedReport(model, template) {
+export function assertTemplateContract(template) {
   if (typeof template !== "string" || template.length === 0) {
     throw new ReportOutputError("The report template is empty or unreadable");
   }
@@ -512,6 +562,18 @@ export function renderNormalizedReport(model, template) {
       "The report template is missing a required renderer placeholder",
     );
   }
+
+  for (const requirement of REQUIRED_TEMPLATE_CONTRACT) {
+    if (!requirement.needles.every((needle) => template.includes(needle))) {
+      throw new ReportOutputError(
+        `The report template is missing required UI contract: ${requirement.label}`,
+      );
+    }
+  }
+}
+
+export function renderNormalizedReport(model, template) {
+  assertTemplateContract(template);
 
   const embeddedModel = escapeJsonForHtml({ tree: model.tree });
   const fragment = template
@@ -533,12 +595,28 @@ export function renderNormalizedReport(model, template) {
   return fragment;
 }
 
+export function wrapStandaloneDocument(fragment) {
+  assertFragmentOnly(fragment);
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Functions Report — Interactive Preview</title>
+</head>
+<body>
+${fragment}
+</body>
+</html>
+`;
+}
+
 export function renderReport(input, template) {
   return renderNormalizedReport(normalizeReport(input), template);
 }
 
 function helpText() {
-  return `Usage: node scripts/render-report.mjs <input.json> <output.html>
+  return `Usage: node scripts/render-report.mjs [--standalone] <input.json> <output.html>
 
 Render a structured functions report as a self-contained HTML fragment.
 
@@ -547,6 +625,7 @@ Arguments:
   output.html   Destination for the generated HTML fragment
 
 Options:
+  --standalone  Wrap the fragment in a UTF-8 HTML document for direct browser previews
   -h, --help    Show this help message
 `;
 }
@@ -556,13 +635,23 @@ export async function main(args = process.argv.slice(2)) {
     process.stdout.write(helpText());
     return;
   }
-  if (args.length !== 2) {
+  const unknownOptions = args.filter(
+    (argument) => argument.startsWith("-") && argument !== "--standalone",
+  );
+  if (unknownOptions.length > 0) {
+    throw new ReportInputError(
+      `Unsupported option ${unknownOptions[0]}. Use --help for usage.`,
+    );
+  }
+  const standalone = args.includes("--standalone");
+  const positionalArgs = args.filter((argument) => argument !== "--standalone");
+  if (positionalArgs.length !== 2) {
     throw new ReportInputError(
       "Expected <input.json> and <output.html>. Use --help for usage.",
     );
   }
 
-  const [inputPath, outputPath] = args;
+  const [inputPath, outputPath] = positionalArgs;
   let input;
   try {
     input = JSON.parse(await readFile(inputPath, "utf8"));
@@ -575,7 +664,8 @@ export async function main(args = process.argv.slice(2)) {
 
   const template = await readFile(TEMPLATE_PATH, "utf8");
   const fragment = renderReport(input, template);
-  await writeFile(outputPath, fragment, "utf8");
+  const output = standalone ? wrapStandaloneDocument(fragment) : fragment;
+  await writeFile(outputPath, output, "utf8");
 }
 
 const isMain =
