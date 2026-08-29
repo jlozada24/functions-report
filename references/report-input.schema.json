@@ -26,8 +26,8 @@
             "description": "Structural path containing all directory segments and the defining filename."
           },
           "proposal": {
-            "const": "new",
-            "description": "Marks a file that would be newly created by an explicit proposal. The renderer shows a gold NEW badge and adds one to the enclosing folder's addition figure."
+            "enum": ["add", "remove"],
+            "description": "Marks a file that an explicit proposal would add or remove. The renderer shows a bright-green ADD or red REMOVE badge and changes only the directly enclosing folder's matching figure by one."
           },
           "changes": {
             "type": "object",
@@ -60,8 +60,8 @@
                   "description": "Real source-level name and actual parameters, including empty parentheses when applicable."
                 },
                 "proposal": {
-                  "const": "new",
-                  "description": "Marks a callable that would be newly introduced by an explicit proposal. The renderer shows a gold NEW badge and adds one only to the defining file's addition figure."
+                  "enum": ["add", "remove"],
+                  "description": "Marks a callable that an explicit proposal would add or remove. The renderer shows a bright-green ADD or red REMOVE badge and changes only the defining file's matching figure by one."
                 },
                 "returns": {
                   "$ref": "#/$defs/nonBlankText",

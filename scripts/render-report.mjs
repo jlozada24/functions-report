@@ -62,13 +62,15 @@ const REQUIRED_TEMPLATE_CONTRACT = [
     ],
   },
   {
-    label: "new proposal badge",
+    label: "proposal status badges",
     needles: [
-      ".fr-new-badge",
-      'badge.className = "fr-new-badge"',
-      'badge.textContent = "NEW"',
-      'appendNewBadge(summary, node)',
-      'appendNewBadge(callableNode, node)',
+      ".fr-proposal-badge",
+      ".fr-proposal-add",
+      ".fr-proposal-remove",
+      'badge.className = `fr-proposal-badge fr-proposal-${node.proposal}`',
+      'badge.textContent = node.proposal === "add" ? "ADD" : "REMOVE"',
+      "appendProposalBadge(summary, node);\n          summary.append(label)",
+      "appendProposalBadge(callableNode, node);\n          callableNode.append(signature)",
     ],
   },
 ];
@@ -136,9 +138,9 @@ function assertNonNegativeInteger(value, path) {
   }
 }
 
-function assertNewProposal(value, path) {
-  if (value !== "new") {
-    failInput(path, 'must equal "new"');
+function assertProposal(value, path) {
+  if (value !== "add" && value !== "remove") {
+    failInput(path, 'must equal "add" or "remove"');
   }
 }
 
@@ -208,7 +210,7 @@ export function validateReportInput(input) {
     assertAllowedKeys(file, ["path", "callables", "changes", "proposal"], filePath);
 
     if (Object.hasOwn(file, "proposal")) {
-      assertNewProposal(file.proposal, `${filePath}.proposal`);
+      assertProposal(file.proposal, `${filePath}.proposal`);
     }
 
     if (Object.hasOwn(file, "changes")) {
@@ -244,7 +246,7 @@ export function validateReportInput(input) {
       assertNonBlankString(callable.signature, `${callablePath}.signature`);
 
       if (Object.hasOwn(callable, "proposal")) {
-        assertNewProposal(callable.proposal, `${callablePath}.proposal`);
+        assertProposal(callable.proposal, `${callablePath}.proposal`);
       }
 
       for (const field of OPTIONAL_CALLABLE_FIELDS) {
@@ -373,9 +375,9 @@ function descendantLanguages(children) {
   return [...languages].sort(compareText);
 }
 
-function countDirectNewChildren(children, kind) {
+function countDirectProposalChildren(children, kind, proposal) {
   return children.filter(
-    (child) => child.kind === kind && child.proposal === "new",
+    (child) => child.kind === kind && child.proposal === proposal,
   ).length;
 }
 
@@ -411,14 +413,18 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
         ? {
             additions:
               descendantChanges.additions +
-              countDirectNewChildren(child.children, "file"),
-            deletions: descendantChanges.deletions,
+              countDirectProposalChildren(child.children, "file", "add"),
+            deletions:
+              descendantChanges.deletions +
+              countDirectProposalChildren(child.children, "file", "remove"),
           }
         : {
             additions:
               (child.changes?.additions ?? 0) +
-              countDirectNewChildren(child.children, "callable"),
-            deletions: child.changes?.deletions ?? 0,
+              countDirectProposalChildren(child.children, "callable", "add"),
+            deletions:
+              (child.changes?.deletions ?? 0) +
+              countDirectProposalChildren(child.children, "callable", "remove"),
           };
       return {
         id: `node-${digest(identity.join("\u001f"))}`,
@@ -444,7 +450,7 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
               ).length,
             }),
         breadcrumb: childBreadcrumbParts.join(" › "),
-        ...(child.proposal === "new" ? { proposal: "new" } : {}),
+        ...(child.proposal ? { proposal: child.proposal } : {}),
         children: assignNodeIds(child.children, identity, childBreadcrumbParts),
       };
     }
@@ -465,7 +471,7 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
     for (const field of OPTIONAL_CALLABLE_FIELDS) {
       if (Object.hasOwn(child, field)) result[field] = child[field];
     }
-    if (child.proposal === "new") result.proposal = "new";
+    if (child.proposal) result.proposal = child.proposal;
     const details = CALLABLE_DETAIL_FIELDS.flatMap(([field, label]) => {
       if (!Object.hasOwn(child, field)) return [];
       return [{
@@ -539,13 +545,13 @@ export function normalizeReport(input) {
       proposal: file.proposal,
     }))
     .sort((left, right) => compareSegments(left.segments, right.segments));
-  const containsNewProposal = files.some(
+  const containsProposal = files.some(
     (file) =>
-      file.proposal === "new" ||
-      file.callables.some((callable) => callable.proposal === "new"),
+      Boolean(file.proposal) ||
+      file.callables.some((callable) => Boolean(callable.proposal)),
   );
   const commonPrefixLength =
-    files.length === 1 && containsNewProposal
+    files.length === 1 && containsProposal
       ? files[0].segments.length - 1
       : longestCommonPrefixLength(files.map((file) => file.segments));
   const tree = [];

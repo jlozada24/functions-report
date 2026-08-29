@@ -12,11 +12,12 @@
         },
         {
           "signature": "parseResponse(response)",
+          "proposal": "remove",
           "returns": "Result<Payload>"
         },
         {
           "signature": "retryFailedRequest(request, { delay = 250 })",
-          "proposal": "new",
+          "proposal": "add",
           "returns": "Promise<Response>",
           "description": "Retries one failed request after a bounded delay."
         }
