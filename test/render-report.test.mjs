@@ -88,7 +88,7 @@ test("divergent folders remain and contain their defining files", () => {
         callables: [callable("handleRequest(request)")],
       },
       {
-        path: "/repo/src/client/request.ts",
+        path: "/repo/src/client/request.js",
         callables: [callable("sendRequest(url, { signal })")],
       },
     ]),
@@ -104,17 +104,17 @@ test("divergent folders remain and contain their defining files", () => {
   assert.deepEqual(
     normalized.tree.map((node) => [node.children[0].kind, node.children[0].label]),
     [
-      ["file", "request.ts"],
+      ["file", "request.js"],
       ["file", "handler.ts"],
     ],
   );
 });
 
-test("folders count descendant files and mark mixed direct contents", () => {
+test("folders aggregate descendant source languages and retain one total count", () => {
   const normalized = normalizeReport(
     inputWith([
       {
-        path: "/repo/src/client/request.ts",
+        path: "/repo/src/client/request.js",
         changes: { additions: 7, deletions: 2 },
         callables: [callable("send()"), callable("cancel()")],
       },
@@ -124,7 +124,7 @@ test("folders count descendant files and mark mixed direct contents", () => {
         callables: [callable("handle()")],
       },
       {
-        path: "/repo/src/server/routes/health.ts",
+        path: "/repo/src/server/routes/health.sh",
         callables: [callable("health()"), callable("ready()"), callable("live()")],
       },
     ]),
@@ -135,11 +135,15 @@ test("folders count descendant files and mark mixed direct contents", () => {
   const handler = server.children.find((node) => node.kind === "file");
 
   assert.equal(client.fileCount, 1);
+  assert.deepEqual(client.languages, ["JavaScript"]);
+  assert.deepEqual(client.itemKinds, ["Functions"]);
   assert.deepEqual(
     { additions: client.additions, deletions: client.deletions },
     { additions: 7, deletions: 2 },
   );
   assert.equal(client.children[0].callableCount, 2);
+  assert.deepEqual(client.children[0].languages, ["JavaScript"]);
+  assert.deepEqual(client.children[0].itemKinds, ["Functions"]);
   assert.deepEqual(
     {
       additions: client.children[0].additions,
@@ -148,20 +152,20 @@ test("folders count descendant files and mark mixed direct contents", () => {
     { additions: 7, deletions: 2 },
   );
   assert.equal(server.fileCount, 2);
-  assert.equal(server.mixed, true);
+  assert.deepEqual(server.languages, ["Shell", "TypeScript"]);
+  assert.deepEqual(server.itemKinds, ["Functions"]);
   assert.deepEqual(
     { additions: server.additions, deletions: server.deletions },
     { additions: 3, deletions: 1 },
   );
   assert.equal(routes.fileCount, 1);
-  assert.equal(routes.mixed, false);
+  assert.deepEqual(routes.languages, ["Shell"]);
   assert.deepEqual(
     { additions: routes.additions, deletions: routes.deletions },
     { additions: 0, deletions: 0 },
   );
   assert.equal(routes.children[0].callableCount, 3);
   assert.equal(handler.callableCount, 1);
-  assert.equal(client.mixed, false);
 });
 
 test("structural node IDs remain stable when visible counts change", () => {
@@ -393,7 +397,7 @@ test("fragment wires native review navigation and the inline annotation editor",
   assert.match(fragment, /<textarea[\s\S]*data-annotation-text/);
   assert.match(fragment, /rows="1"/);
   assert.match(fragment, /<span>Cancel<\/span><kbd aria-hidden="true">Esc<\/kbd>/);
-  assert.match(fragment, /<span>Save<\/span><kbd aria-hidden="true">⌘↵<\/kbd>/);
+  assert.match(fragment, /<span>Save<\/span><kbd aria-hidden="true">⌘<\/kbd><kbd aria-hidden="true">↵<\/kbd>/);
   assert.match(fragment, /const annotations = new Map\(\)/);
   assert.match(fragment, /"ArrowDown"/);
   assert.match(fragment, /"ArrowUp"/);
@@ -423,8 +427,12 @@ test("fragment wires native review navigation and the inline annotation editor",
   assert.match(fragment, /aria-keyshortcuts="Escape"/);
   assert.match(fragment, /saveButton\.addEventListener\("click", saveAnnotation\)/);
   assert.match(fragment, /const resizeAnnotationText = \(\) =>/);
-  assert.match(fragment, /element\.getBoundingClientRect\(\)\.height/);
-  assert.match(fragment, /--fr-editor-row-height/);
+  assert.doesNotMatch(fragment, /element\.getBoundingClientRect\(\)\.height/);
+  assert.match(fragment, /--fr-editor-line-size: 30px/);
+  assert.match(fragment, /const lineSize = 30/);
+  assert.match(fragment, /class="fr-cancel"/);
+  assert.match(fragment, /\.fr-editor-actions \.fr-cancel \{[\s\S]*?background: var\(--fr-red\)/);
+  assert.match(fragment, /\.fr-editor-actions \.fr-save \{[\s\S]*?background: var\(--fr-green\)/);
   assert.match(fragment, /inline-size: calc\(100% - 25px\)/);
   assert.doesNotMatch(
     fragment,
@@ -660,16 +668,20 @@ test("fragment renders the reference-inspired responsive report shell", () => {
   assert.match(fragment, /--fr-bg: #0e1014/);
   assert.match(fragment, /background: linear-gradient\(180deg, var\(--fr-header-1\), var\(--fr-header-2\)\)/);
   assert.match(fragment, /border-top: 2px solid var\(--fr-group-color\)/);
-  assert.match(fragment, /className = "fr-count-badge"/);
-  assert.match(fragment, /count\.setAttribute\("aria-hidden", "true"\)/);
+  assert.match(fragment, /for \(const language of node\.languages\)/);
+  assert.match(fragment, /className = "fr-language-tag"/);
+  assert.match(fragment, /tag\.textContent = language/);
+  assert.match(fragment, /for \(const kind of node\.itemKinds\)/);
+  assert.match(fragment, /className = "fr-item-kind-tag"/);
+  assert.match(fragment, /tag\.textContent = kind/);
+  assert.match(fragment, /className = "fr-total-count"/);
+  assert.match(fragment, /node\.kind === "folder" \? node\.fileCount : node\.callableCount/);
   assert.match(fragment, /className = "fr-change-additions"/);
   assert.match(fragment, /additions\.textContent = `\+\$\{node\.additions\}`/);
   assert.match(fragment, /className = "fr-change-deletions"/);
   assert.match(fragment, /deletions\.textContent = `−\$\{node\.deletions\}`/);
-  assert.match(fragment, /node\.kind === "folder" && node\.mixed/);
-  assert.match(fragment, /mixed\.className = "fr-mixed-badge"/);
-  assert.match(fragment, /mixed\.textContent = "Mixed"/);
-  assert.match(fragment, /node\.mixed \? ", mixed contents" : ""/);
+  assert.match(fragment, /appendLanguageAndCountBadges\(summary, node\)/);
+  assert.doesNotMatch(fragment, /fr-count-(?:metric|number|tag)|fr-mixed-badge|mixed contents/i);
   assert.match(fragment, /File \$\{node\.label\}, \$\{countLabel\(node\)\}, \$\{changeLabel\(node\)\}/);
   assert.match(fragment, /@media \(prefers-color-scheme: light\)/);
   assert.match(fragment, /@media \(max-width: 640px\)/);

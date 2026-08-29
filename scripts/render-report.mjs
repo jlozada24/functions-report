@@ -18,6 +18,18 @@ const CALLABLE_DETAIL_FIELDS = [
   ["uses", "Uses"],
   ["updates", "Updates"],
 ];
+const LANGUAGE_BY_EXTENSION = new Map([
+  ["bash", "Shell"], ["c", "C"], ["cc", "C++"], ["cpp", "C++"],
+  ["cs", "C#"], ["css", "CSS"], ["cjs", "JavaScript"], ["cts", "TypeScript"],
+  ["fish", "Shell"], ["go", "Go"], ["h", "C"], ["hpp", "C++"],
+  ["html", "HTML"], ["java", "Java"], ["js", "JavaScript"], ["jsx", "JavaScript"],
+  ["kt", "Kotlin"], ["kts", "Kotlin"], ["lua", "Lua"], ["m", "Objective-C"],
+  ["mjs", "JavaScript"], ["mm", "Objective-C++"], ["mts", "TypeScript"],
+  ["php", "PHP"], ["py", "Python"], ["r", "R"], ["rb", "Ruby"],
+  ["rs", "Rust"], ["sass", "Sass"], ["scss", "Sass"], ["sh", "Shell"],
+  ["sql", "SQL"], ["swift", "Swift"], ["ts", "TypeScript"], ["tsx", "TypeScript"],
+  ["vue", "Vue"], ["zsh", "Shell"],
+]);
 
 export class ReportInputError extends Error {
   constructor(message) {
@@ -265,6 +277,27 @@ function countDescendantFiles(children) {
   }, 0);
 }
 
+function sourceLanguageForFile(label) {
+  const lowerLabel = label.toLowerCase();
+  if (lowerLabel === "makefile") return "Make";
+  const separator = lowerLabel.lastIndexOf(".");
+  if (separator < 0 || separator === lowerLabel.length - 1) return "Source";
+  const extension = lowerLabel.slice(separator + 1);
+  return LANGUAGE_BY_EXTENSION.get(extension) ?? extension.toUpperCase();
+}
+
+function descendantLanguages(children) {
+  const languages = new Set();
+  const visit = (nodes) => {
+    for (const node of nodes) {
+      if (node.kind === "file") languages.add(node.language);
+      if (node.kind === "folder") visit(node.children);
+    }
+  };
+  visit(children);
+  return [...languages].sort(compareText);
+}
+
 function countDescendantChanges(children) {
   return children.reduce(
     (totals, child) => {
@@ -297,13 +330,15 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
         id: `node-${digest(identity.join("\u001f"))}`,
         kind: child.kind,
         label: child.label,
+        languages: child.kind === "folder"
+          ? descendantLanguages(child.children)
+          : [child.language],
+        itemKinds: ["Functions"],
         additions: changes.additions,
         deletions: changes.deletions,
         ...(child.kind === "folder"
           ? {
               fileCount: countDescendantFiles(child.children),
-              mixed: child.children.some((descendant) => descendant.kind === "folder") &&
-                child.children.some((descendant) => descendant.kind === "file"),
             }
           : {
               callableCount: child.children.filter(
@@ -416,7 +451,10 @@ export function normalizeReport(input) {
     remainingSegments.forEach((segment, index) => {
       const kind = index === remainingSegments.length - 1 ? "file" : "folder";
       const group = findOrCreateGroup(children, kind, segment);
-      if (kind === "file") group.changes = file.changes;
+      if (kind === "file") {
+        group.changes = file.changes;
+        group.language = sourceLanguageForFile(segment);
+      }
       children = group.children;
     });
 
