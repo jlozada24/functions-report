@@ -1,6 +1,6 @@
 ---
 name: functions-report
-description: Inspect requested current source files or folders and produce one concise structural functions outline, rendered as an interactive keyboard-review tree when supported or as a fully indented text fallback. Use for functions-outline requests; analyze source without editing it and do not produce call-flow, dependency, risk, or exhaustive callable-inventory reports.
+description: Inspect requested current source files or folders and produce one concise structural functions outline as an interactive keyboard-review tree. Use for functions-outline requests; analyze source without editing it and do not produce call-flow, dependency, risk, or exhaustive callable-inventory reports.
 ---
 
 # Functions Report
@@ -27,19 +27,19 @@ Read [references/report-input.schema.json](references/report-input.schema.json),
 - For an ordinary report, omit each file's optional `changes` object so its green addition and red deletion figures remain zero. For a proposal with supported change counts, set `changes.additions` and `changes.deletions` on each file; folder figures aggregate their descendant files.
 - Do not add annotations, source excerpts, full-path display fields, call graphs, filters, or old report sections to the input.
 
-## Render and present
+## Render and present — mandatory
 
-From the skill directory, generate the report with:
+For every report, inspect the requested source, create schema-conforming temporary input, and generate the interactive HTML from the skill directory with:
 
 ```text
 node scripts/render-report.mjs <input.json> <output.html>
 ```
 
-The output is a self-contained HTML fragment. When the current interface supports inline visualizations, present that fragment as the report. It provides native disclosure controls at every folder, file, and detail-bearing callable level, visible-node keyboard navigation, and one in-memory annotation per folder, file, callable, or callable detail row. Its visible `Copy annotations` button and plain `C` shortcut copy only the current annotations as portable Markdown. Do not claim that annotations persist or add any host messaging, file transfer, storage, or other transport.
+The output is a self-contained HTML fragment. Present its complete contents as the standalone, user-visible interactive report; do not replace it with Markdown, a code block, an explanation, or a manually constructed outline. It provides native disclosure controls at every folder, file, and detail-bearing callable level, visible-node keyboard navigation, and one in-memory annotation per folder, file, callable, or callable detail row. Its visible `Copy annotations` button and plain `C` shortcut copy only the current annotations as portable Markdown. Do not claim that annotations persist or add any host messaging, file transfer, storage, or other transport.
 
 Each structural header orders its metadata as the final numeric count badge, compact green addition/red deletion figures, a divider, then source-language and semantic item-kind badges. File language is derived from its filename extension (for example, `.js` is `JavaScript` and `.sh` is `Shell`); folders show the unique source languages represented by descendant files. This outline uses a `FUNCTIONS` item-kind badge; the same badge treatment is available to `CONSTANTS` in report variants that contain that category. A folder's final count is its total descendant files, while a file's final count is its reported callables. Ordinary reports show `+0 −0`; proposal inputs can supply per-file changes, which aggregate into folder figures.
 
-If inline visualization is unavailable, return the same normalized hierarchy as exactly one fully indented fenced `text` block. Do not present both forms unless the user asks. Apart from a brief unresolved-path notice when needed, add no prose or separate sections.
+There is no text fallback. If the interface cannot present the generated HTML artifact, say that rendering is unavailable and stop; do not provide a partial report in another format. Apart from a brief unresolved-path or rendering-unavailable notice, add no prose or separate sections.
 
 ## Interpret copied annotations
 
@@ -65,7 +65,7 @@ When the user pastes content beginning with `# Functions report annotations`:
 
 ## Common-prefix law
 
-The renderer enforces this law. Apply it directly when producing the text fallback:
+The renderer enforces this law. Populate the structured input so its paths produce this result:
 
 1. Treat each callable as a child of a structural path containing every directory segment plus its defining filename. Callable names do not participate in prefix calculation.
 2. Compute the longest structural prefix shared by every included callable's file path, including filenames in the calculation.
