@@ -1,55 +1,63 @@
 ---
 name: functions-report
-description: Inspect source files in any language or repository and produce concise, architecture-oriented function inventories and execution- or data-flow reports. Use when Codex is asked to outline or explain functions, methods, procedures, constructors, entry points, helpers, lifecycle hooks, handlers, or meaningful callbacks; trace how routines call one another; identify cross-file or cross-module dependencies; or summarize call flows across runtime, process, service, thread, or deployment boundaries.
+description: Inspect requested current source files or folders and produce one concise, fully indented structural outline of their named callables. Use for functions-outline requests; this skill analyzes source without editing it and does not produce call-flow, dependency, risk, or exhaustive callable-inventory reports.
 ---
 
 # Functions Report
 
-Produce an evidence-based inventory of every in-scope callable and the primary flows that connect them. Apply the workflow to any programming language, source layout, framework, or execution environment. Analyze only; do not edit the requested source unless the user separately requests changes.
+Inspect the requested current source scope and return one concise structural outline of its named callables. Analyze only; do not edit the inspected source unless the user separately requests source changes.
 
-## Inspect the code
+## Scope and evidence
 
-1. Resolve every requested path to an exact file. Expand directories, globs, or ambiguous references into an explicit file list, and report any requested path that cannot be resolved.
-2. Read every in-scope file completely before drafting the report. Do not infer completeness from excerpts, search results, symbol indexes, or partial reads.
-3. Identify each file's language and execution context. Mark runtime, process, service, thread, module, layer, deployment, or host boundaries when they affect control or data flow.
-4. Build a per-file inventory containing every named callable: functions, procedures, methods, constructors, operators, accessors with behavior, public entry points, lifecycle hooks, local routines, named handlers, named function expressions, and callables assigned to symbols. Record each symbol once under the file that defines it. Treat declarations according to the source language rather than forcing one language's terminology onto another.
-5. Include an anonymous callback or closure only when it is an independently meaningful stage that cannot be represented by its caller alone, such as a distinct external failure, retry, completion, or event handler. Give it a concise descriptive label rather than inventing a source-level name. Omit trivial iteration, mapping, filtering, sorting, forwarding, adapter, and wiring callbacks.
-6. Trace calls from actual call sites. Reconstruct the dominant entry flows, important branches, callbacks, and data transformations; do not claim a call edge merely because compatible functions exist.
-7. Identify calls from in-scope code into callables, values, services, libraries, or modules owned outside the requested files. Search the repository or inspect the defining source far enough to establish ownership and the purpose used here, but do not add out-of-scope callables to the in-scope inventory.
-8. Distinguish authoritative enforcement, mutation, validation, and side effects from advisory checks, formatting, presentation, or feedback. State which component or execution context owns each authoritative decision; for client/server systems, explicitly distinguish server enforcement from client presentation when relevant.
-9. Support every statement with inspected code. Qualify framework- or platform-driven entry behavior when the invocation is conventional rather than explicitly visible in the scoped files.
-10. Check inventory completeness and uniqueness before answering: every in-scope named callable appears exactly once, no omitted constructor, method, procedure, hook, or entry point remains, and no callable is duplicated across groups.
+- Resolve the user-requested paths and respect deliberately narrow file, folder, or symbol scopes. Inspect enough current source to report the requested scope accurately.
+- When files or folders are requested without narrower symbols, include the named callables defined in those scoped files. Omit trivial anonymous iteration and wiring callbacks unless the user explicitly asks for them.
+- Derive every callable name, parameter, return annotation or result shape, and note from the inspected code. Do not invent missing information or descriptive names for anonymous callables.
+- If a requested path cannot be resolved, state that briefly before the outline instead of fabricating content.
 
-## Reconstruct flows
+## Normalize the structural hierarchy
 
-Choose short flow labels grounded in the code, such as `Initialization`, `Primary request`, `Command invocation`, `Event handling`, `Scheduled job`, `Queue message`, `Data pipeline`, or `Failure path`. Use `→` between real stages. Show a boundary handoff explicitly when useful, for example `process A: producer → transport → process B: consumer`.
+For each included callable, form a structural path from every directory segment plus its defining filename. The callable is a child of that path and never participates in prefix calculation.
 
-Prefer source-level callable names in arrows. Use a short stage label only for top-level initialization, framework dispatch, persistence, external service work, or an important anonymous callback that has no source name. Include branches only when they materially change the architecture or outcome.
+1. Compute the longest structural prefix shared by all included callables.
+2. Remove that entire shared prefix from the displayed hierarchy.
+3. Never restore a removed repository, application, `src`, `Sources`, module, folder, or filename for context.
+4. Render only the remaining structural nodes, then their callables, in this order: folder or module nodes, file nodes, callables, and optional nested notes.
+5. Preserve every real structural level after the shared prefix. Do not flatten divergent folders.
 
-If a naming mismatch, missing target, unresolved symbol, unreachable handler, wrong identifier, incompatible interface, or other concrete broken connection materially interrupts a documented flow, add a separate `## Broken connection` section after the flows. State the exact conflicting names or call edge and its consequence. Omit this section when no supported material break exists.
+Consequences:
 
-## Format the report
+- One file: all directory and filename segments are shared, so begin directly with its callables.
+- Several files in one directory: omit the shared directories and use the differing filenames as top-level nodes.
+- Divergent subfolders: retain each differing folder and nest its files beneath it.
 
-Group symbols under their defining source filename. Use a clickable absolute file link in the filename heading when the interface supports local links. Group within a file by runtime or responsibility only when that improves navigation.
+## Render the outline
 
-Use exactly one physical line per inventoried callable, with no nested bullets:
+- Return exactly one fully indented hierarchy in a fenced `text` block. Apart from a brief unresolved-path notice when needed, do not add prose or separate sections.
+- Show each callable with its real source-level name and actual parameter names. Include `()` when it has no explicit parameters, and preserve compact meaningful syntax such as destructuring, rest parameters, defaults, or labels.
+- Add `→ ReturnType` only when a source-supported return type or result shape materially improves understanding. It is not required on every callable.
+- Let a self-explanatory signature stand alone. When the signature is insufficient, add one concise explanation nested directly beneath it.
+- Add a concise nested `Uses:` or `Updates:` note only for an architecturally important implicit dependency, state mutation, persistence effect, or other side effect.
+- Do not add call-flow, dependency, risk, commentary, broken-connection, or other report sections.
 
-```markdown
-## `<filename>`
+Compact normalization examples:
 
-`callableName` - One concise, behavior-specific sentence describing what the callable does.
+```text
+# All callables are in repo/src/config.ts; omit the entire shared file path.
+loadConfig(path)
+saveConfig(path, options = {})
+  Updates: Persists the normalized configuration.
 
-`anotherCallable` - One concise, behavior-specific sentence describing what the callable does.
+# Callables are in repo/src/parser.ts and repo/src/renderer.ts; omit repo/src.
+parser.ts
+  parse(input) → SyntaxTree
+renderer.ts
+  render(tree)
 
-## Primary flows
-
-Primary path - `entryPoint → input handling → core operation → result`.
-
-Failure path - `entryPoint → dependency call → failure handler → recovery or result`.
-
-## External dependencies
-
-`externalCallable` - Owned by `<other file, module, library, service, or platform>` and used for a concise stated purpose.
+# Callables diverge under repo/src/client and repo/src/server; retain those folders.
+client/
+  request.ts
+    sendRequest(url, { signal })
+server/
+  handler.ts
+    handleRequest(request) → Response
 ```
-
-Keep descriptions concrete and concise. Prefer `callableName - description`; do not restate the name generically. Cover every in-scope callable while avoiding commentary on every trivial callback. Preserve source-level names and language terminology. List an external dependency once even if several in-scope callables use it, and state the relevant owning file, module, library, service, platform, or runtime. Use absolute clickable file links for dependency owners when supported.
