@@ -17,7 +17,12 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["path", "callables"],
+        "required": ["path"],
+        "anyOf": [
+          { "required": ["callables"] },
+          { "required": ["constants"] },
+          { "required": ["dataStructures"] }
+        ],
         "properties": {
           "path": {
             "type": "string",
@@ -33,7 +38,7 @@
             "type": "object",
             "additionalProperties": false,
             "required": ["additions", "deletions"],
-            "description": "Optional callable addition and deletion counts not already represented by proposal-marked callable rows. Ordinary reports omit this and render zeroes. These counts adjust the file's post-change total once.",
+            "description": "Optional proposal addition and deletion figures not already represented by proposal-marked source-item rows. Ordinary reports omit this and render zeroes. These figures do not alter the inventory-derived total count badge.",
             "properties": {
               "additions": {
                 "type": "integer",
@@ -81,6 +86,22 @@
                 }
               }
             }
+          },
+          "constants": {
+            "type": "array",
+            "minItems": 1,
+            "description": "Named source constants rendered with the reserved pink system color.",
+            "items": {
+              "$ref": "#/$defs/declaration"
+            }
+          },
+          "dataStructures": {
+            "type": "array",
+            "minItems": 1,
+            "description": "Named enums, object or dictionary shapes, JSON-like declarations, and similar data structures rendered with the reserved dark-red system color.",
+            "items": {
+              "$ref": "#/$defs/declaration"
+            }
           }
         }
       }
@@ -91,6 +112,25 @@
       "type": "string",
       "minLength": 1,
       "pattern": "\\S"
+    },
+    "declaration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["signature"],
+      "properties": {
+        "signature": {
+          "$ref": "#/$defs/nonBlankText",
+          "description": "The real source-level declaration name or compact defining shape."
+        },
+        "proposal": {
+          "enum": ["add", "remove"],
+          "description": "Marks a proposed addition or removal and changes only the defining file's matching figure by one."
+        },
+        "description": {
+          "$ref": "#/$defs/nonBlankText",
+          "description": "Concise responsibility only when the declaration is not self-explanatory."
+        }
+      }
     }
   }
 }

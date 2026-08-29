@@ -251,6 +251,7 @@
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-file {
     --fr-group-color: var(--fr-level-file);
+    --fr-file-language-color: var(--fr-level-file);
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% details > .fr-list {
@@ -317,6 +318,10 @@
     border-bottom: 1px solid color-mix(in srgb, var(--fr-row-color) 28%, var(--fr-border));
   }
 
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-file > details > summary.fr-node {
+    box-shadow: inset 3px 0 0 var(--fr-file-language-color);
+  }
+
   #%%FUNCTIONS_REPORT_ROOT_ID%% summary.fr-node:hover {
     background: color-mix(in srgb, var(--fr-group-color, var(--fr-accent)) 12%, var(--fr-button-hover));
   }
@@ -362,17 +367,13 @@
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-language-tag {
     --fr-language-color: var(--fr-pink);
     color: var(--fr-language-color);
+    background: color-mix(in srgb, var(--fr-language-color) 10%, var(--fr-bg-3));
     border-color: color-mix(in srgb, var(--fr-language-color) 38%, var(--fr-border));
     font-size: 9.5px;
     font-weight: 700;
     letter-spacing: 0.02em;
     line-height: 1.4;
   }
-
-  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-language-tag:nth-of-type(4n + 1) { --fr-language-color: var(--fr-pink); }
-  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-language-tag:nth-of-type(4n + 2) { --fr-language-color: var(--fr-green); }
-  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-language-tag:nth-of-type(4n + 3) { --fr-language-color: var(--fr-cyan); }
-  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-language-tag:nth-of-type(4n) { --fr-language-color: var(--fr-orange); }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-item-kind-tag {
     color: var(--fr-purple);
@@ -382,6 +383,16 @@
     letter-spacing: 0.04em;
     line-height: 1.4;
     text-transform: uppercase;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-item-kind-constants {
+    color: var(--fr-level-constant);
+    border-color: color-mix(in srgb, var(--fr-level-constant) 38%, var(--fr-border));
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-item-kind-data-structures {
+    color: var(--fr-level-data-structure);
+    border-color: color-mix(in srgb, var(--fr-level-data-structure) 48%, var(--fr-border));
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-proposal-badge {
@@ -472,6 +483,18 @@
     border-radius: 3px;
     cursor: pointer;
     transition: background 120ms ease, border-color 120ms ease;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-constant-node {
+    --fr-row-color: var(--fr-level-constant);
+    background: color-mix(in srgb, var(--fr-row-color) 6%, transparent);
+    box-shadow: inset 2px 0 0 var(--fr-row-color);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-data-structure-node {
+    --fr-row-color: var(--fr-level-data-structure);
+    background: color-mix(in srgb, var(--fr-row-color) 7%, transparent);
+    box-shadow: inset 2px 0 0 var(--fr-row-color);
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% button.fr-callable-node {
@@ -845,13 +868,43 @@
       return;
     }
 
+    const themedCssColor = (color) =>
+      `light-dark(${color.light}, ${color.dark})`;
+    const languageColor = (language) =>
+      model.colors.languages[language] || model.colors.languageFallback;
+
+    root.style.setProperty(
+      "--fr-level-folder",
+      themedCssColor(model.colors.structural.folder),
+    );
+    root.style.setProperty(
+      "--fr-level-file",
+      themedCssColor(model.colors.structural.file),
+    );
+    root.style.setProperty(
+      "--fr-level-callable",
+      themedCssColor(model.colors.structural.callable),
+    );
+    root.style.setProperty(
+      "--fr-level-constant",
+      themedCssColor(model.colors.structural.constant),
+    );
+    root.style.setProperty(
+      "--fr-level-data-structure",
+      themedCssColor(model.colors.structural.dataStructure),
+    );
+    root.style.setProperty(
+      "--fr-level-detail",
+      themedCssColor(model.colors.structural.detail),
+    );
+
     const annotations = new Map();
     let activeNode = null;
     let editorNode = null;
 
     const countLabel = (node) => {
       const count = node.finalCount;
-      const noun = node.kind === "folder" ? "file" : "function";
+      const noun = node.kind === "folder" ? "file" : "item";
       return `${count} ${noun}${count === 1 ? "" : "s"}`;
     };
 
@@ -874,7 +927,12 @@
         : node.proposal === "remove"
           ? ", removal proposal"
           : "";
-      return `Callable ${node.signature}${proposalLabel}${node.returns ? `, returns ${node.returns}` : ""}`;
+      const sourceKind = node.kind === "constant"
+        ? "Constant"
+        : node.kind === "data-structure"
+          ? "Data structure"
+          : "Callable";
+      return `${sourceKind} ${node.signature}${proposalLabel}${node.returns ? `, returns ${node.returns}` : ""}`;
     };
 
     const setNodeAccessibleLabel = (element) => {
@@ -921,12 +979,14 @@
         const tag = document.createElement("span");
         tag.className = "fr-language-tag";
         tag.textContent = language;
+        tag.style.setProperty("--fr-language-color", themedCssColor(languageColor(language)));
         tag.setAttribute("aria-hidden", "true");
         container.append(tag);
       }
       for (const kind of node.itemKinds) {
         const tag = document.createElement("span");
         tag.className = "fr-item-kind-tag";
+        tag.classList.add(`fr-item-kind-${kind.toLowerCase().replaceAll(" ", "-")}`);
         tag.textContent = kind;
         tag.setAttribute("aria-hidden", "true");
         container.append(tag);
@@ -1086,6 +1146,9 @@
 
         if (node.kind === "folder" || node.kind === "file") {
           item.className = `fr-group fr-${node.kind}`;
+          if (node.kind === "file") {
+            item.style.setProperty("--fr-file-language-color", themedCssColor(languageColor(node.language)));
+          }
           const details = document.createElement("details");
           details.open = true;
           details.addEventListener("toggle", reconcileCollapsedDisclosure);
@@ -1122,10 +1185,12 @@
           item.append(details);
         } else {
           item.className = "fr-callable";
+          if (node.kind !== "callable") item.classList.add(`fr-${node.kind}`);
           const hasDetails = Boolean(node.details?.length);
           const callableNode = document.createElement(hasDetails ? "summary" : "button");
           if (!hasDetails) callableNode.type = "button";
           callableNode.className = "fr-tree-row fr-node fr-callable-node";
+          if (node.kind !== "callable") callableNode.classList.add(`fr-${node.kind}-node`);
           callableNode.dataset.nodeId = node.id;
           callableNode.dataset.annotationLabel = nodeLabel(node);
           callableNode.dataset.annotationBreadcrumb = node.breadcrumb;

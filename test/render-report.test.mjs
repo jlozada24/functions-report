@@ -151,7 +151,7 @@ test("folder tags describe contents while file tags describe inventory", () => {
     { additions: 7, deletions: 2 },
   );
   assert.equal(client.children[0].callableCount, 2);
-  assert.equal(client.children[0].finalCount, 7);
+  assert.equal(client.children[0].finalCount, 2);
   assert.deepEqual(client.children[0].languages, []);
   assert.deepEqual(client.children[0].itemKinds, ["Functions"]);
   assert.deepEqual(
@@ -179,7 +179,7 @@ test("folder tags describe contents while file tags describe inventory", () => {
   );
   assert.equal(routes.children[0].callableCount, 3);
   assert.equal(handler.callableCount, 1);
-  assert.equal(handler.finalCount, 3);
+  assert.equal(handler.finalCount, 1);
 });
 
 test("structural node IDs remain stable when visible counts change", () => {

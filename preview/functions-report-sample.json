@@ -21,6 +21,18 @@
           "returns": "Promise<Response>",
           "description": "Retries one failed request after a bounded delay."
         }
+      ],
+      "constants": [
+        {
+          "signature": "DEFAULT_RETRY_DELAY = 250",
+          "description": "Default delay before retrying a failed request."
+        }
+      ],
+      "dataStructures": [
+        {
+          "signature": "RetryPolicy { retries, delay, backoff }",
+          "description": "Configuration shape used by the request retry policy."
+        }
       ]
     },
     {

@@ -2,20 +2,25 @@
 
 Use this workflow only when the user asks to open, show, render, preview, or verify a functions report in the in-app browser. The outcome is a live interactive report in an in-app-browser tab, not just a generated file or a URL printed in chat.
 
+Only an HTML document produced by `scripts/render-report.mjs --standalone` is a browser-preview artifact. `assets/report-template.html` is an internal fragment containing unresolved renderer placeholders; never navigate a browser to it, open it with a `file:` URL, or present it as the report. If a browser is showing that asset, replace the tab with a freshly generated standalone preview served over loopback HTTP.
+
 ## 1. Generate a standalone document
 
-Run from the `functions-report` skill directory. Keep temporary preview artifacts outside the repository unless the user explicitly asks to update a checked-in preview. Run this entire block in one long-lived shell invocation so the temporary-directory value remains available to the server process:
+Run from the `functions-report` skill directory. Keep temporary preview artifacts outside the repository unless the user explicitly asks to update a checked-in preview. Use the same `input_path` for rendering and for the JSON receipt; copy it byte-for-byte rather than reconstructing or normalizing it. Run this entire block in one long-lived shell invocation so the temporary-directory value remains available to the server process:
 
 ```bash
+input_path="<input.json>"
 preview_dir="$(mktemp -d "${TMPDIR:-/tmp}/functions-report-preview.XXXXXX")"
-node scripts/render-report.mjs --standalone <input.json> "$preview_dir/functions-report.html"
+node scripts/render-report.mjs --standalone "$input_path" "$preview_dir/functions-report.html"
+cp "$input_path" "$preview_dir/functions-report-input.json"
 test -s "$preview_dir/functions-report.html"
-python3 -u -m http.server 0 --bind 127.0.0.1 --directory "$preview_dir"
+test -s "$preview_dir/functions-report-input.json"
+python3 -u scripts/serve-preview.py --directory "$preview_dir" --timeout-seconds 7200
 ```
 
-Replace `<input.json>` with the real schema-conforming input path. `--standalone` is required. A fragment served without it can misdecode the minus sign, arrows, separators, or keyboard glyphs.
+Replace `<input.json>` with the real schema-conforming input path. `--standalone` is required. A fragment served without it can misdecode the minus sign, arrows, separators, or keyboard glyphs. `functions-report-input.json` is the receipt and must remain an exact copy of the input consumed by the renderer.
 
-Keep the long-running server session available until the browser preview has been delivered. Port `0` tells the operating system to choose an unoccupied port; read the actual port from the server's startup line, for example `Serving HTTP on 127.0.0.1 port 49152`.
+Use only `scripts/serve-preview.py`; remove the generic `python -m http.server` line if copying an older command block. Keep the long-running server session available until the browser preview has been delivered. Port `0` tells the operating system to choose an unoccupied port; read the actual port from the helper's startup URL. The helper always stops automatically: its default timeout is two hours (`7200` seconds), and it rejects timeouts longer than four hours (`14400` seconds). Never run a preview server without this timeout failsafe.
 
 ## 2. Serve it over loopback HTTP
 
@@ -32,7 +37,7 @@ curl --fail --silent --show-error --output /dev/null \
   http://127.0.0.1:<selected-port>/functions-report.html
 ```
 
-Replace `<selected-port>` with the numeric port printed by the server. Do not use a `file:` URL: the in-app browser preview must come from `http://127.0.0.1:<port>/...`. Do not detach the server with `&`, kill an unrelated listener, or reuse a URL without first confirming that it serves the newly generated document.
+Replace `<selected-port>` with the numeric port printed by the server. Do not use a `file:` URL: the in-app browser preview must come from `http://127.0.0.1:<port>/...`. In particular, never navigate to `assets/report-template.html`; it is not generated output. Do not detach the server with `&`, kill an unrelated listener, or reuse a URL without first confirming that it serves the newly generated document.
 
 ## 3. Connect to the in-app browser
 
@@ -65,7 +70,7 @@ Replace `<selected-port>` with the same numeric port used by `curl`. Do not crea
 After navigation, use the documented DOM snapshot API to confirm all of the following from the loaded page:
 
 - The title or report root is visible.
-- The total count badge is present and shows the post-change total: additions count, removals do not.
+- The total count badge is present and matches the displayed inventory: untagged and `ADD` children count, while `REMOVE` children do not.
 - Green addition and red deletion figures are present, including zero values.
 - The keyboard-shortcut legend and `Copy annotations` control are present.
 - Language or inventory badges are present where the report data requires them.
@@ -79,6 +84,11 @@ Also take a screenshot when visual placement, color, wrapping, or glyph renderin
 - If browser setup succeeds but discovery or selection fails, follow the Browser skill's `bootstrap-troubleshooting` documentation before resetting anything.
 - If `iab` is unavailable, report that the in-app browser preview is unavailable and stop. Do not silently substitute Chrome, an external browser, Computer Use, or a Markdown report.
 - If a tab is stale, closed, or absent, get or create a fresh tab from the existing `iab` binding and navigate again.
+- If the tab shows `assets/report-template.html` or any other `file:` URL, it is not a valid preview. Generate a standalone document and navigate that tab to its verified loopback URL.
 - If the page is garbled or symbols are broken, regenerate with `--standalone`; do not patch the output HTML by hand.
 
 Do not stop at generation or server startup. The preview is complete only after the in-app-browser tab has loaded the report and the required interface elements have been verified.
+
+## 6. Return the JSON receipt
+
+After browser verification, return the exact `functions-report-input.json` receipt to the user as a clickable local-file link. Also include its complete JSON contents in a fenced `json` block unless the user asks for only the file. Do not regenerate the receipt from the normalized model, scrape it from the rendered page, summarize it, or silently omit fields. The browser preview and the unchanged input receipt are the two required outputs of this workflow.
