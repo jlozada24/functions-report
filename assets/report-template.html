@@ -246,7 +246,7 @@
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-folder {
-    --fr-group-color: var(--fr-level-folder);
+    --fr-group-color: var(--fr-folder-accent-color, var(--fr-level-folder));
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-file {
@@ -319,7 +319,24 @@
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-file > details > summary.fr-node {
-    box-shadow: inset 3px 0 0 var(--fr-file-language-color);
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--fr-file-language-color) 16%, var(--fr-bg-2)),
+      color-mix(in srgb, var(--fr-file-language-color) 7%, var(--fr-bg-2)) 58%,
+      color-mix(in srgb, var(--fr-row-color) 8%, var(--fr-bg-2))
+    );
+    border-block-start: 1px solid color-mix(in srgb, var(--fr-file-language-color) 46%, var(--fr-border));
+    border-bottom-color: color-mix(in srgb, var(--fr-file-language-color) 34%, var(--fr-border));
+    box-shadow:
+      inset 3px 0 0 var(--fr-file-language-color),
+      inset 0 1px 0 color-mix(in srgb, var(--fr-file-language-color) 26%, transparent),
+      0 0 5px color-mix(in srgb, var(--fr-file-language-color) 8%, transparent);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-file > details > summary.fr-node .fr-node-label {
+    color: color-mix(in srgb, var(--fr-file-language-color) 78%, var(--fr-text));
+    font-weight: 750;
+    text-shadow: 0 0 3px color-mix(in srgb, var(--fr-file-language-color) 12%, transparent);
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% summary.fr-node:hover {
@@ -367,8 +384,11 @@
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-language-tag {
     --fr-language-color: var(--fr-pink);
     color: var(--fr-language-color);
-    background: color-mix(in srgb, var(--fr-language-color) 10%, var(--fr-bg-3));
-    border-color: color-mix(in srgb, var(--fr-language-color) 38%, var(--fr-border));
+    background: color-mix(in srgb, var(--fr-language-color) 18%, var(--fr-bg-3));
+    border-color: color-mix(in srgb, var(--fr-language-color) 72%, var(--fr-border));
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--fr-language-color) 12%, transparent),
+      0 0 6px color-mix(in srgb, var(--fr-language-color) 20%, transparent);
     font-size: 9.5px;
     font-weight: 700;
     letter-spacing: 0.02em;
@@ -376,8 +396,11 @@
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-item-kind-tag {
-    color: var(--fr-purple);
-    border-color: color-mix(in srgb, var(--fr-purple) 38%, var(--fr-border));
+    --fr-item-kind-color: var(--fr-level-callable);
+    color: var(--fr-item-kind-color);
+    background: color-mix(in srgb, var(--fr-item-kind-color) 16%, var(--fr-bg-3));
+    border-color: color-mix(in srgb, var(--fr-item-kind-color) 68%, var(--fr-border));
+    box-shadow: 0 0 6px color-mix(in srgb, var(--fr-item-kind-color) 18%, transparent);
     font-size: 9.5px;
     font-weight: 750;
     letter-spacing: 0.04em;
@@ -386,13 +409,11 @@
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-item-kind-constants {
-    color: var(--fr-level-constant);
-    border-color: color-mix(in srgb, var(--fr-level-constant) 38%, var(--fr-border));
+    --fr-item-kind-color: var(--fr-level-constant);
   }
 
-  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-item-kind-data-structures {
-    color: var(--fr-level-data-structure);
-    border-color: color-mix(in srgb, var(--fr-level-data-structure) 48%, var(--fr-border));
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-item-kind-structures {
+    --fr-item-kind-color: var(--fr-level-data-structure);
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-proposal-badge {
@@ -487,14 +508,18 @@
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-constant-node {
     --fr-row-color: var(--fr-level-constant);
-    background: color-mix(in srgb, var(--fr-row-color) 6%, transparent);
-    box-shadow: inset 2px 0 0 var(--fr-row-color);
+    background: color-mix(in srgb, var(--fr-row-color) 12%, transparent);
+    box-shadow:
+      inset 3px 0 0 var(--fr-row-color),
+      0 0 7px color-mix(in srgb, var(--fr-row-color) 14%, transparent);
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-data-structure-node {
     --fr-row-color: var(--fr-level-data-structure);
-    background: color-mix(in srgb, var(--fr-row-color) 7%, transparent);
-    box-shadow: inset 2px 0 0 var(--fr-row-color);
+    background: color-mix(in srgb, var(--fr-row-color) 13%, transparent);
+    box-shadow:
+      inset 3px 0 0 var(--fr-row-color),
+      0 0 7px color-mix(in srgb, var(--fr-row-color) 16%, transparent);
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% button.fr-callable-node {
@@ -872,6 +897,15 @@
       `light-dark(${color.light}, ${color.dark})`;
     const languageColor = (language) =>
       model.colors.languages[language] || model.colors.languageFallback;
+    const folderColor = (breadcrumb) => {
+      let hash = 2166136261;
+      for (const character of breadcrumb) {
+        hash ^= character.codePointAt(0);
+        hash = Math.imul(hash, 16777619);
+      }
+      const palette = model.colors.folderPalette;
+      return palette[(hash >>> 0) % palette.length] || model.colors.structural.folder;
+    };
 
     root.style.setProperty(
       "--fr-level-folder",
@@ -1146,7 +1180,9 @@
 
         if (node.kind === "folder" || node.kind === "file") {
           item.className = `fr-group fr-${node.kind}`;
-          if (node.kind === "file") {
+          if (node.kind === "folder") {
+            item.style.setProperty("--fr-folder-accent-color", themedCssColor(folderColor(node.breadcrumb)));
+          } else {
             item.style.setProperty("--fr-file-language-color", themedCssColor(languageColor(node.language)));
           }
           const details = document.createElement("details");
