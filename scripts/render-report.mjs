@@ -61,6 +61,16 @@ const REQUIRED_TEMPLATE_CONTRACT = [
       'tag.className = "fr-item-kind-tag"',
     ],
   },
+  {
+    label: "new proposal badge",
+    needles: [
+      ".fr-new-badge",
+      'badge.className = "fr-new-badge"',
+      'badge.textContent = "NEW"',
+      'appendNewBadge(summary, node)',
+      'appendNewBadge(callableNode, node)',
+    ],
+  },
 ];
 const OPTIONAL_CALLABLE_FIELDS = ["returns", "description", "uses", "updates"];
 const CALLABLE_DETAIL_FIELDS = [
@@ -123,6 +133,12 @@ function assertNonBlankString(value, path) {
 function assertNonNegativeInteger(value, path) {
   if (!Number.isInteger(value) || value < 0) {
     failInput(path, "must be a non-negative integer");
+  }
+}
+
+function assertNewProposal(value, path) {
+  if (value !== "new") {
+    failInput(path, 'must equal "new"');
   }
 }
 
@@ -189,7 +205,11 @@ export function validateReportInput(input) {
   input.files.forEach((file, fileIndex) => {
     const filePath = `$.files[${fileIndex}]`;
     assertPlainObject(file, filePath);
-    assertAllowedKeys(file, ["path", "callables", "changes"], filePath);
+    assertAllowedKeys(file, ["path", "callables", "changes", "proposal"], filePath);
+
+    if (Object.hasOwn(file, "proposal")) {
+      assertNewProposal(file.proposal, `${filePath}.proposal`);
+    }
 
     if (Object.hasOwn(file, "changes")) {
       assertPlainObject(file.changes, `${filePath}.changes`);
@@ -218,10 +238,14 @@ export function validateReportInput(input) {
       assertPlainObject(callable, callablePath);
       assertAllowedKeys(
         callable,
-        ["signature", ...OPTIONAL_CALLABLE_FIELDS],
+        ["signature", "proposal", ...OPTIONAL_CALLABLE_FIELDS],
         callablePath,
       );
       assertNonBlankString(callable.signature, `${callablePath}.signature`);
+
+      if (Object.hasOwn(callable, "proposal")) {
+        assertNewProposal(callable.proposal, `${callablePath}.proposal`);
+      }
 
       for (const field of OPTIONAL_CALLABLE_FIELDS) {
         if (Object.hasOwn(callable, field)) {
@@ -275,6 +299,7 @@ function cloneCallable(callable, order) {
       result[field] = callable[field];
     }
   }
+  if (Object.hasOwn(callable, "proposal")) result.proposal = callable.proposal;
   return result;
 }
 
@@ -348,6 +373,12 @@ function descendantLanguages(children) {
   return [...languages].sort(compareText);
 }
 
+function countDirectNewChildren(children, kind) {
+  return children.filter(
+    (child) => child.kind === kind && child.proposal === "new",
+  ).length;
+}
+
 function countDescendantChanges(children) {
   return children.reduce(
     (totals, child) => {
@@ -373,9 +404,22 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
       const identity = [...ancestors, `${child.kind}:${child.label}`];
       const displayLabel = child.kind === "folder" ? `${child.label}/` : child.label;
       const childBreadcrumbParts = [...breadcrumbParts, displayLabel];
-      const changes = child.kind === "folder"
+      const descendantChanges = child.kind === "folder"
         ? countDescendantChanges(child.children)
-        : (child.changes ?? { additions: 0, deletions: 0 });
+        : null;
+      const changes = child.kind === "folder"
+        ? {
+            additions:
+              descendantChanges.additions +
+              countDirectNewChildren(child.children, "file"),
+            deletions: descendantChanges.deletions,
+          }
+        : {
+            additions:
+              (child.changes?.additions ?? 0) +
+              countDirectNewChildren(child.children, "callable"),
+            deletions: child.changes?.deletions ?? 0,
+          };
       return {
         id: `node-${digest(identity.join("\u001f"))}`,
         kind: child.kind,
@@ -400,6 +444,7 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
               ).length,
             }),
         breadcrumb: childBreadcrumbParts.join(" › "),
+        ...(child.proposal === "new" ? { proposal: "new" } : {}),
         children: assignNodeIds(child.children, identity, childBreadcrumbParts),
       };
     }
@@ -420,6 +465,7 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
     for (const field of OPTIONAL_CALLABLE_FIELDS) {
       if (Object.hasOwn(child, field)) result[field] = child[field];
     }
+    if (child.proposal === "new") result.proposal = "new";
     const details = CALLABLE_DETAIL_FIELDS.flatMap(([field, label]) => {
       if (!Object.hasOwn(child, field)) return [];
       return [{
@@ -490,11 +536,18 @@ export function normalizeReport(input) {
       segments: splitStructuralPath(file.path),
       callables: file.callables,
       changes: file.changes ?? { additions: 0, deletions: 0 },
+      proposal: file.proposal,
     }))
     .sort((left, right) => compareSegments(left.segments, right.segments));
-  const commonPrefixLength = longestCommonPrefixLength(
-    files.map((file) => file.segments),
+  const containsNewProposal = files.some(
+    (file) =>
+      file.proposal === "new" ||
+      file.callables.some((callable) => callable.proposal === "new"),
   );
+  const commonPrefixLength =
+    files.length === 1 && containsNewProposal
+      ? files[0].segments.length - 1
+      : longestCommonPrefixLength(files.map((file) => file.segments));
   const tree = [];
   let callableOrder = 0;
 
@@ -508,6 +561,7 @@ export function normalizeReport(input) {
       if (kind === "file") {
         group.changes = file.changes;
         group.language = sourceLanguageForFile(segment);
+        group.proposal = file.proposal;
       }
       children = group.children;
     });

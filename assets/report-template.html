@@ -74,6 +74,7 @@
     --fr-red: #ff3b5c;
     --fr-orange: #ff8a00;
     --fr-yellow: #ffe600;
+    --fr-gold: #f4c95d;
     --fr-green: #35f27a;
     --fr-blue: #4d7cff;
     --fr-purple: #c45cff;
@@ -345,6 +346,7 @@
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-language-tag,
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-item-kind-tag,
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-new-badge,
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-total-count {
     display: inline-flex;
     align-items: center;
@@ -380,6 +382,16 @@
     letter-spacing: 0.04em;
     line-height: 1.4;
     text-transform: uppercase;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-new-badge {
+    padding-inline: 5px;
+    color: #2a1a00;
+    background: var(--fr-gold);
+    border-color: color-mix(in srgb, var(--fr-gold) 72%, #5c3c00);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, #ffffff 28%, transparent);
+    font: 850 9.5px/1.4 "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    letter-spacing: 0.06em;
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-total-count {
@@ -700,6 +712,7 @@
       --fr-red: #c9194b;
       --fr-orange: #c2410c;
       --fr-yellow: #8a6500;
+      --fr-gold: #e8b931;
       --fr-green: #087f3f;
       --fr-blue: #1849b5;
       --fr-purple: #7a21c9;
@@ -831,8 +844,14 @@
 
     const nodeLabel = (node) => {
       if (node.kind === "folder") return `Folder ${node.label}, ${countLabel(node)}, ${changeLabel(node)}`;
-      if (node.kind === "file") return `File ${node.label}, ${countLabel(node)}, ${changeLabel(node)}`;
-      return `Callable ${node.signature}${node.returns ? `, returns ${node.returns}` : ""}`;
+      if (node.kind === "file") {
+        if (node.proposal === "new") {
+          return `File ${node.label}, new proposal, ${countLabel(node)}, ${changeLabel(node)}`;
+        }
+        return `File ${node.label}, ${countLabel(node)}, ${changeLabel(node)}`;
+      }
+      const proposalLabel = node.proposal === "new" ? ", new proposal" : "";
+      return `Callable ${node.signature}${proposalLabel}${node.returns ? `, returns ${node.returns}` : ""}`;
     };
 
     const setNodeAccessibleLabel = (element) => {
@@ -865,6 +884,15 @@
       );
       count.setAttribute("aria-hidden", "true");
       container.append(count);
+    };
+
+    const appendNewBadge = (container, node) => {
+      if (node.proposal !== "new") return;
+      const badge = document.createElement("span");
+      badge.className = "fr-new-badge";
+      badge.textContent = "NEW";
+      badge.setAttribute("aria-hidden", "true");
+      container.append(badge);
     };
 
     const appendLanguageAndKindTags = (container, node) => {
@@ -1049,6 +1077,7 @@
           label.className = "fr-node-label";
           label.textContent = node.kind === "folder" ? `${node.label}/` : node.label;
           summary.append(label);
+          appendNewBadge(summary, node);
           appendTotalCount(summary, node);
           const changes = document.createElement("span");
           changes.className = "fr-change-stats";
@@ -1083,6 +1112,7 @@
           signature.className = "fr-signature";
           appendHighlightedSignature(signature, node.signature);
           callableNode.append(signature);
+          appendNewBadge(callableNode, node);
           if (node.returns) {
             const returns = document.createElement("span");
             returns.className = "fr-return";

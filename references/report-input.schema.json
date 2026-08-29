@@ -25,6 +25,10 @@
             "pattern": "\\S",
             "description": "Structural path containing all directory segments and the defining filename."
           },
+          "proposal": {
+            "const": "new",
+            "description": "Marks a file that would be newly created by an explicit proposal. The renderer shows a gold NEW badge and adds one to the enclosing folder's addition figure."
+          },
           "changes": {
             "type": "object",
             "additionalProperties": false,
@@ -54,6 +58,10 @@
                   "minLength": 1,
                   "pattern": "\\S",
                   "description": "Real source-level name and actual parameters, including empty parentheses when applicable."
+                },
+                "proposal": {
+                  "const": "new",
+                  "description": "Marks a callable that would be newly introduced by an explicit proposal. The renderer shows a gold NEW badge and adds one only to the defining file's addition figure."
                 },
                 "returns": {
                   "$ref": "#/$defs/nonBlankText",
