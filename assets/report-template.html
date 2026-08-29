@@ -1034,19 +1034,19 @@
     };
 
     const appendLanguageAndKindTags = (container, node) => {
-      for (const language of node.languages) {
-        const tag = document.createElement("span");
-        tag.className = "fr-language-tag";
-        tag.textContent = language;
-        tag.style.setProperty("--fr-language-color", themedCssColor(languageColor(language)));
-        tag.setAttribute("aria-hidden", "true");
-        container.append(tag);
-      }
       for (const kind of node.itemKinds) {
         const tag = document.createElement("span");
         tag.className = "fr-item-kind-tag";
         tag.classList.add(`fr-item-kind-${kind.toLowerCase().replaceAll(" ", "-")}`);
         tag.textContent = kind;
+        tag.setAttribute("aria-hidden", "true");
+        container.append(tag);
+      }
+      for (const language of node.languages) {
+        const tag = document.createElement("span");
+        tag.className = "fr-language-tag";
+        tag.textContent = language;
+        tag.style.setProperty("--fr-language-color", themedCssColor(languageColor(language)));
         tag.setAttribute("aria-hidden", "true");
         container.append(tag);
       }
