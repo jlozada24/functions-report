@@ -5,8 +5,13 @@
 >
   <div class="fr-header">
     <div class="fr-heading">
-      <span class="fr-eyebrow">Structural review</span>
-      <p>Navigate with arrow keys; use Left and Right to collapse or expand. Press Enter or right-click any node to annotate it.</p>
+      <p class="fr-shortcuts" aria-label="Keyboard shortcuts: Up and Down navigate; Left collapses; Right expands; Enter annotates. Right-click also annotates.">
+        <span aria-hidden="true"><kbd>↑</kbd><kbd>↓</kbd> Navigate</span>
+        <span aria-hidden="true"><kbd>←</kbd> Collapse</span>
+        <span aria-hidden="true"><kbd>→</kbd> Expand</span>
+        <span aria-hidden="true"><kbd>↵</kbd> Annotate</span>
+        <span aria-hidden="true"><kbd>R-click</kbd> Annotate</span>
+      </p>
     </div>
     <div class="fr-copy-row">
       <button
@@ -14,7 +19,8 @@
         class="fr-copy-button"
         data-copy-annotations
         aria-keyshortcuts="C"
-      >Copy annotations</button>
+        aria-label="Copy annotations, keyboard shortcut C"
+      ><span>Copy annotations</span><kbd aria-hidden="true">C</kbd></button>
       <span class="fr-copy-status" data-copy-status role="status" aria-live="polite"></span>
     </div>
   </div>
@@ -38,13 +44,14 @@
       rows="1"
     ></textarea>
     <div class="fr-editor-actions">
-      <button type="button" data-annotation-cancel aria-keyshortcuts="Escape">Cancel</button>
+      <button type="button" data-annotation-cancel aria-keyshortcuts="Escape" aria-label="Cancel annotation, Escape"><span>Cancel</span><kbd aria-hidden="true">Esc</kbd></button>
       <button
         type="button"
         class="fr-save"
         data-annotation-save
         aria-keyshortcuts="Meta+Enter"
-      >Save</button>
+        aria-label="Save annotation, Command Enter"
+      ><span>Save</span><kbd aria-hidden="true">⌘↵</kbd></button>
     </div>
   </form>
 </section>
@@ -123,22 +130,37 @@
     min-inline-size: 0;
   }
 
-  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-eyebrow {
-    display: block;
-    margin-block-end: 3px;
-    color: var(--fr-accent);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-heading p {
     max-inline-size: 720px;
     margin: 2px 0 0;
     color: var(--fr-muted);
     font-size: 12px;
     line-height: 1.45;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-shortcuts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    align-items: center;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: 19px;
+    min-block-size: 18px;
+    margin-inline-end: 2px;
+    padding: 0 4px;
+    color: var(--fr-text);
+    background: var(--fr-bg-3);
+    border: 1px solid var(--fr-border);
+    border-bottom-color: color-mix(in srgb, var(--fr-border) 65%, #000000);
+    border-radius: 4px;
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--fr-border) 70%, transparent);
+    font: 700 10px/1 "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    vertical-align: 1px;
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-list {
@@ -158,6 +180,9 @@
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-copy-button {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
     padding: 4px 8px;
     color: var(--fr-text);
     background: var(--fr-bg-3);
@@ -340,6 +365,22 @@
     color: color-mix(in srgb, var(--fr-row-color) 82%, var(--fr-text));
     background: color-mix(in srgb, var(--fr-row-color) 12%, var(--fr-bg-3));
     border-color: color-mix(in srgb, var(--fr-row-color) 35%, var(--fr-border));
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-mixed-badge {
+    display: inline-flex;
+    align-items: center;
+    margin-inline-start: 2px;
+    padding: 0 4px;
+    color: var(--fr-pink);
+    background: color-mix(in srgb, var(--fr-pink) 12%, var(--fr-bg-3));
+    border: 1px solid color-mix(in srgb, var(--fr-pink) 38%, var(--fr-border));
+    border-radius: 3px;
+    font-size: 9.5px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    line-height: 1.4;
+    vertical-align: 1px;
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-change-stats {
@@ -529,7 +570,8 @@
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-editor {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 3px;
     align-items: flex-end;
     max-inline-size: 100%;
@@ -560,9 +602,9 @@
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-editor textarea {
-    flex: 1 1 auto;
     min-inline-size: 0;
-    min-block-size: 28px;
+    inline-size: calc(100% - 25px);
+    min-block-size: var(--fr-editor-row-height, 28px);
     max-block-size: 240px;
     padding: 4px 5px;
     resize: none;
@@ -587,6 +629,9 @@
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-editor-actions button {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
     padding: 3px 5px;
     color: var(--fr-text);
     background: var(--fr-bg-3);
@@ -692,7 +737,6 @@
       padding-block: 10px;
     }
 
-    #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-editor textarea,
     #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-editor-actions button {
       min-block-size: 44px;
     }
@@ -752,7 +796,7 @@
       `${node.additions} addition${node.additions === 1 ? "" : "s"}, ${node.deletions} deletion${node.deletions === 1 ? "" : "s"}`;
 
     const nodeLabel = (node) => {
-      if (node.kind === "folder") return `Folder ${node.label}, ${countLabel(node)}, ${changeLabel(node)}`;
+      if (node.kind === "folder") return `Folder ${node.label}, ${countLabel(node)}${node.mixed ? ", mixed contents" : ""}, ${changeLabel(node)}`;
       if (node.kind === "file") return `File ${node.label}, ${countLabel(node)}, ${changeLabel(node)}`;
       return `Callable ${node.signature}${node.returns ? `, returns ${node.returns}` : ""}`;
     };
@@ -949,6 +993,13 @@
           count.textContent = countLabel(node);
           count.setAttribute("aria-hidden", "true");
           summary.append(count);
+          if (node.kind === "folder" && node.mixed) {
+            const mixed = document.createElement("span");
+            mixed.className = "fr-mixed-badge";
+            mixed.textContent = "Mixed";
+            mixed.setAttribute("aria-hidden", "true");
+            summary.append(mixed);
+          }
           const changes = document.createElement("span");
           changes.className = "fr-change-stats";
           changes.setAttribute("aria-hidden", "true");
@@ -1130,9 +1181,15 @@
         target.closest("[contenteditable='true']") !== null);
 
     const resizeAnnotationText = () => {
-      annotationText.style.blockSize = "auto";
-      const nextSize = Math.min(annotationText.scrollHeight, 240);
-      annotationText.style.blockSize = `${Math.max(nextSize, 28)}px`;
+      const rowSize = Number.parseFloat(
+        form.style.getPropertyValue("--fr-editor-row-height"),
+      ) || 28;
+      annotationText.style.blockSize = "0px";
+      const contentSize = annotationText.value.length > 0
+        ? annotationText.scrollHeight
+        : rowSize;
+      const nextSize = Math.min(Math.max(contentSize, rowSize), 240);
+      annotationText.style.blockSize = `${nextSize}px`;
       annotationText.style.overflowY = annotationText.scrollHeight > 240 ? "auto" : "hidden";
     };
 
@@ -1142,6 +1199,8 @@
       editorNode = element;
       annotationTarget.textContent = element.dataset.annotationLabel || "Report node";
       annotationText.value = annotations.get(element.dataset.nodeId) || "";
+      const rowSize = Math.max(28, Math.ceil(element.getBoundingClientRect().height));
+      form.style.setProperty("--fr-editor-row-height", `${rowSize}px`);
       const disclosure = element.matches("summary") ? element.parentElement : null;
       if (disclosure?.matches("details")) disclosure.open = true;
       element.insertAdjacentElement("afterend", form);

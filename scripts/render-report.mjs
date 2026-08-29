@@ -300,7 +300,11 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
         additions: changes.additions,
         deletions: changes.deletions,
         ...(child.kind === "folder"
-          ? { fileCount: countDescendantFiles(child.children) }
+          ? {
+              fileCount: countDescendantFiles(child.children),
+              mixed: child.children.some((descendant) => descendant.kind === "folder") &&
+                child.children.some((descendant) => descendant.kind === "file"),
+            }
           : {
               callableCount: child.children.filter(
                 (descendant) => descendant.kind === "callable",

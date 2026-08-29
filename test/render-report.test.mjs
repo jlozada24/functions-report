@@ -110,7 +110,7 @@ test("divergent folders remain and contain their defining files", () => {
   );
 });
 
-test("folders count descendant files and files count their callables", () => {
+test("folders count descendant files and mark mixed direct contents", () => {
   const normalized = normalizeReport(
     inputWith([
       {
@@ -148,17 +148,20 @@ test("folders count descendant files and files count their callables", () => {
     { additions: 7, deletions: 2 },
   );
   assert.equal(server.fileCount, 2);
+  assert.equal(server.mixed, true);
   assert.deepEqual(
     { additions: server.additions, deletions: server.deletions },
     { additions: 3, deletions: 1 },
   );
   assert.equal(routes.fileCount, 1);
+  assert.equal(routes.mixed, false);
   assert.deepEqual(
     { additions: routes.additions, deletions: routes.deletions },
     { additions: 0, deletions: 0 },
   );
   assert.equal(routes.children[0].callableCount, 3);
   assert.equal(handler.callableCount, 1);
+  assert.equal(client.mixed, false);
 });
 
 test("structural node IDs remain stable when visible counts change", () => {
@@ -389,8 +392,8 @@ test("fragment wires native review navigation and the inline annotation editor",
   assert.doesNotMatch(fragment, /<dialog\b/i);
   assert.match(fragment, /<textarea[\s\S]*data-annotation-text/);
   assert.match(fragment, /rows="1"/);
-  assert.match(fragment, />Cancel<\/button>/);
-  assert.match(fragment, />Save<\/button>/);
+  assert.match(fragment, /<span>Cancel<\/span><kbd aria-hidden="true">Esc<\/kbd>/);
+  assert.match(fragment, /<span>Save<\/span><kbd aria-hidden="true">⌘↵<\/kbd>/);
   assert.match(fragment, /const annotations = new Map\(\)/);
   assert.match(fragment, /"ArrowDown"/);
   assert.match(fragment, /"ArrowUp"/);
@@ -403,7 +406,7 @@ test("fragment wires native review navigation and the inline annotation editor",
   assert.match(fragment, /scrollIntoView\(\{ block: "nearest" \}\)/);
   assert.match(fragment, /dataset\.nodeId = node\.id/);
   assert.match(fragment, /annotations\.delete\(nodeId\)/);
-  assert.match(fragment, />Copy annotations<\/button>/);
+  assert.match(fragment, /<span>Copy annotations<\/span><kbd aria-hidden="true">C<\/kbd>/);
   assert.match(fragment, /aria-keyshortcuts="C"/);
   assert.match(fragment, /aria-live="polite"/);
   assert.match(fragment, /event\.key === "c" \|\| event\.key === "C"/);
@@ -420,6 +423,13 @@ test("fragment wires native review navigation and the inline annotation editor",
   assert.match(fragment, /aria-keyshortcuts="Escape"/);
   assert.match(fragment, /saveButton\.addEventListener\("click", saveAnnotation\)/);
   assert.match(fragment, /const resizeAnnotationText = \(\) =>/);
+  assert.match(fragment, /element\.getBoundingClientRect\(\)\.height/);
+  assert.match(fragment, /--fr-editor-row-height/);
+  assert.match(fragment, /inline-size: calc\(100% - 25px\)/);
+  assert.doesNotMatch(
+    fragment,
+    /\.fr-editor textarea,\s*[^}]*\.fr-editor-actions button\s*\{\s*min-block-size: 44px/,
+  );
   assert.match(fragment, /annotationText\.scrollHeight/);
   assert.match(fragment, /annotationText\.addEventListener\("input", resizeAnnotationText\)/);
   assert.match(fragment, /resizeAnnotationText\(\);\s*annotationText\.focus\(\)/);
@@ -639,7 +649,12 @@ test("fragment renders the reference-inspired responsive report shell", () => {
   );
 
   assert.match(fragment, /<div class="fr-header">/);
-  assert.match(fragment, /<span class="fr-eyebrow">Structural review<\/span>/);
+  assert.doesNotMatch(fragment, /Structural review/i);
+  assert.match(fragment, /<kbd>↑<\/kbd><kbd>↓<\/kbd> Navigate/);
+  assert.match(fragment, /<kbd>←<\/kbd> Collapse/);
+  assert.match(fragment, /<kbd>→<\/kbd> Expand/);
+  assert.match(fragment, /<kbd>↵<\/kbd> Annotate/);
+  assert.match(fragment, /<kbd>R-click<\/kbd> Annotate/);
   assert.doesNotMatch(fragment, /<h1>Functions outline<\/h1>/);
   assert.match(fragment, /<div class="fr-tree-wrap">/);
   assert.match(fragment, /--fr-bg: #0e1014/);
@@ -651,6 +666,10 @@ test("fragment renders the reference-inspired responsive report shell", () => {
   assert.match(fragment, /additions\.textContent = `\+\$\{node\.additions\}`/);
   assert.match(fragment, /className = "fr-change-deletions"/);
   assert.match(fragment, /deletions\.textContent = `−\$\{node\.deletions\}`/);
+  assert.match(fragment, /node\.kind === "folder" && node\.mixed/);
+  assert.match(fragment, /mixed\.className = "fr-mixed-badge"/);
+  assert.match(fragment, /mixed\.textContent = "Mixed"/);
+  assert.match(fragment, /node\.mixed \? ", mixed contents" : ""/);
   assert.match(fragment, /File \$\{node\.label\}, \$\{countLabel\(node\)\}, \$\{changeLabel\(node\)\}/);
   assert.match(fragment, /@media \(prefers-color-scheme: light\)/);
   assert.match(fragment, /@media \(max-width: 640px\)/);
