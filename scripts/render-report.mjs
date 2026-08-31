@@ -6,6 +6,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const MAX_FRAGMENT_BYTES = 1_000_000;
+export const REPORT_SCHEMA_VERSION = 2;
 
 const themedColor = (dark, light) => Object.freeze({ dark, light });
 
@@ -15,9 +16,12 @@ export const REPORT_COLOR_CONFIG = Object.freeze({
   structural: Object.freeze({
     folder: themedColor("#f4f7ff", "#38445c"),
     file: themedColor("#a9c7ff", "#2857a4"),
+    extension: themedColor("#00f5d4", "#007968"),
     callable: themedColor("#d05cff", "#8d00d4"),
     constant: themedColor("#ff2bd6", "#d000a8"),
-    dataStructure: themedColor("#ff3155", "#a40025"),
+    type: themedColor("#ff3155", "#a40025"),
+    capability: themedColor("#ff9f0a", "#b45300"),
+    macro: themedColor("#ffe600", "#8a6500"),
     detail: themedColor("#aab6cc", "#526078"),
   }),
   folderPalette: Object.freeze([
@@ -35,6 +39,8 @@ export const REPORT_COLOR_CONFIG = Object.freeze({
   }),
   languageFallback: themedColor("#c4cee0", "#53627a"),
   languages: Object.freeze({
+    "AppleScript": themedColor("#8b7cff", "#5540bd"),
+    "Bash": themedColor("#a8ff3e", "#4f7d00"),
     "C": themedColor("#60a5ff", "#005fbd"),
     "C#": themedColor("#39e66e", "#00853e"),
     "C++": themedColor("#3d8bff", "#004fb5"),
@@ -43,13 +49,16 @@ export const REPORT_COLOR_CONFIG = Object.freeze({
     "HTML": themedColor("#ff5b2e", "#c52d00"),
     "Java": themedColor("#ff8a00", "#b24d00"),
     "JavaScript": themedColor("#ffe600", "#8a6500"),
+    "JSON": themedColor("#ffd43b", "#8a6500"),
     "Kotlin": themedColor("#ff4f87", "#c0004b"),
     "Lua": themedColor("#7c6cff", "#4736c9"),
     "Make": themedColor("#ff7043", "#b83212"),
     "Objective-C": themedColor("#00a6ff", "#0066b3"),
     "Objective-C++": themedColor("#4d7cff", "#1e4bb8"),
+    "PBXPROJ": themedColor("#d878ff", "#7a28a8"),
     "PHP": themedColor("#9f8cff", "#5e45a8"),
     "Python": themedColor("#00f5d4", "#007968"),
+    "PLIST": themedColor("#00dfa2", "#007458"),
     "R": themedColor("#4da3ff", "#095ca8"),
     "Ruby": themedColor("#ff476d", "#b0002d"),
     "Rust": themedColor("#ff8534", "#b34700"),
@@ -60,6 +69,8 @@ export const REPORT_COLOR_CONFIG = Object.freeze({
     "Swift": themedColor("#ff5f45", "#c2250d"),
     "TypeScript": themedColor("#2f8cff", "#0064d8"),
     "Vue": themedColor("#2ee89b", "#00895a"),
+    "XCCONFIG": themedColor("#80ff44", "#367f00"),
+    "Zsh": themedColor("#70f0ff", "#08798a"),
   }),
 });
 
@@ -123,13 +134,19 @@ const REQUIRED_TEMPLATE_CONTRACT = [
       "--fr-file-language-color",
       "model.colors.structural.callable",
       "model.colors.structural.constant",
-      "model.colors.structural.dataStructure",
+      "model.colors.structural.type",
+      "model.colors.structural.capability",
+      "model.colors.structural.macro",
+      "model.colors.structural.extension",
       "model.colors.inventory.functions",
       "folderColor(node.breadcrumb, usedFolderColorIndexes)",
       "languageColor(language)",
       'item.style.setProperty("--fr-file-language-color", themedCssColor(languageColor(node.language)))',
       ".fr-constant-node",
-      ".fr-data-structure-node",
+      ".fr-type-node",
+      ".fr-capability-node",
+      ".fr-macro-node",
+      ".fr-extension",
     ],
   },
   {
@@ -152,18 +169,45 @@ const CALLABLE_DETAIL_FIELDS = [
   ["uses", "Uses"],
   ["updates", "Updates"],
 ];
-const SOURCE_ITEM_KINDS = new Set(["callable", "constant", "data-structure"]);
+const SOURCE_ITEM_KINDS = new Set([
+  "callable",
+  "constant",
+  "type",
+  "capability",
+  "macro",
+]);
+const GROUP_KINDS = new Set(["folder", "file", "extension"]);
+const SOURCE_COLLECTIONS = Object.freeze([
+  ["constants", "constant", OPTIONAL_DECLARATION_FIELDS],
+  ["types", "type", OPTIONAL_DECLARATION_FIELDS],
+  ["capabilities", "capability", OPTIONAL_DECLARATION_FIELDS],
+  ["macros", "macro", OPTIONAL_DECLARATION_FIELDS],
+  ["callables", "callable", OPTIONAL_CALLABLE_FIELDS],
+]);
+const ITEM_KIND_ORDER = Object.freeze([
+  "Functions",
+  "Constants",
+  "Types",
+  "Capabilities",
+  "Macros",
+  "Extensions",
+]);
 const LANGUAGE_BY_EXTENSION = new Map([
-  ["bash", "Shell"], ["c", "C"], ["cc", "C++"], ["cpp", "C++"],
+  ["applescript", "AppleScript"], ["bash", "Bash"], ["c", "C"],
+  ["cc", "C++"], ["cpp", "C++"],
   ["cs", "C#"], ["css", "CSS"], ["cjs", "JavaScript"], ["cts", "TypeScript"],
-  ["fish", "Shell"], ["go", "Go"], ["h", "C"], ["hpp", "C++"],
+  ["entitlements", "PLIST"], ["fish", "Shell"], ["go", "Go"],
+  ["h", "C"], ["hpp", "C++"],
   ["html", "HTML"], ["java", "Java"], ["js", "JavaScript"], ["jsx", "JavaScript"],
-  ["kt", "Kotlin"], ["kts", "Kotlin"], ["lua", "Lua"], ["m", "Objective-C"],
+  ["json", "JSON"], ["kt", "Kotlin"], ["kts", "Kotlin"], ["lua", "Lua"],
+  ["m", "Objective-C"],
   ["mjs", "JavaScript"], ["mm", "Objective-C++"], ["mts", "TypeScript"],
-  ["php", "PHP"], ["py", "Python"], ["r", "R"], ["rb", "Ruby"],
+  ["pbxproj", "PBXPROJ"], ["php", "PHP"], ["plist", "PLIST"],
+  ["py", "Python"], ["r", "R"], ["rb", "Ruby"],
   ["rs", "Rust"], ["sass", "Sass"], ["scss", "Sass"], ["sh", "Shell"],
-  ["sql", "SQL"], ["swift", "Swift"], ["ts", "TypeScript"], ["tsx", "TypeScript"],
-  ["vue", "Vue"], ["zsh", "Shell"],
+  ["scpt", "AppleScript"], ["sql", "SQL"], ["swift", "Swift"],
+  ["ts", "TypeScript"], ["tsx", "TypeScript"], ["vue", "Vue"],
+  ["xcconfig", "XCCONFIG"], ["zsh", "Zsh"],
 ]);
 
 export class ReportInputError extends Error {
@@ -262,12 +306,43 @@ function compareSegments(left, right) {
   return left.length - right.length;
 }
 
+function validateSourceCollections(container, containerPath) {
+  let sourceItemCount = 0;
+  for (const [collectionName, , optionalFields] of SOURCE_COLLECTIONS) {
+    const collection = container[collectionName];
+    if (collection === undefined) continue;
+    if (!Array.isArray(collection) || collection.length === 0) {
+      failInput(`${containerPath}.${collectionName}`, "must be a non-empty array");
+    }
+    sourceItemCount += collection.length;
+    collection.forEach((item, itemIndex) => {
+      const itemPath = `${containerPath}.${collectionName}[${itemIndex}]`;
+      assertPlainObject(item, itemPath);
+      assertAllowedKeys(
+        item,
+        ["signature", "proposal", ...optionalFields],
+        itemPath,
+      );
+      assertNonBlankString(item.signature, `${itemPath}.signature`);
+      if (Object.hasOwn(item, "proposal")) {
+        assertProposal(item.proposal, `${itemPath}.proposal`);
+      }
+      for (const field of optionalFields) {
+        if (Object.hasOwn(item, field)) {
+          assertNonBlankString(item[field], `${itemPath}.${field}`);
+        }
+      }
+    });
+  }
+  return sourceItemCount;
+}
+
 export function validateReportInput(input) {
   assertPlainObject(input, "$");
   assertAllowedKeys(input, ["schemaVersion", "files"], "$");
 
-  if (input.schemaVersion !== 1) {
-    failInput("$.schemaVersion", "must equal 1");
+  if (input.schemaVersion !== REPORT_SCHEMA_VERSION) {
+    failInput("$.schemaVersion", `must equal ${REPORT_SCHEMA_VERSION}`);
   }
 
   if (!Array.isArray(input.files) || input.files.length === 0) {
@@ -282,9 +357,24 @@ export function validateReportInput(input) {
     assertPlainObject(file, filePath);
     assertAllowedKeys(
       file,
-      ["path", "callables", "constants", "dataStructures", "changes", "proposal"],
+      [
+        "path",
+        "language",
+        "callables",
+        "constants",
+        "types",
+        "capabilities",
+        "macros",
+        "extensions",
+        "changes",
+        "proposal",
+      ],
       filePath,
     );
+
+    if (Object.hasOwn(file, "language")) {
+      assertNonBlankString(file.language, `${filePath}.language`);
+    }
 
     if (Object.hasOwn(file, "proposal")) {
       assertProposal(file.proposal, `${filePath}.proposal`);
@@ -308,39 +398,36 @@ export function validateReportInput(input) {
     seenPaths.set(normalizedPath, fileIndex);
     structuralPaths.push({ fileIndex, segments });
 
-    const itemCollections = [
-      ["callables", file.callables, OPTIONAL_CALLABLE_FIELDS],
-      ["constants", file.constants, OPTIONAL_DECLARATION_FIELDS],
-      ["dataStructures", file.dataStructures, OPTIONAL_DECLARATION_FIELDS],
-    ];
-    let sourceItemCount = 0;
-    for (const [collectionName, collection, optionalFields] of itemCollections) {
-      if (collection === undefined) continue;
-      if (!Array.isArray(collection)) {
-        failInput(`${filePath}.${collectionName}`, "must be an array");
+    let sourceItemCount = validateSourceCollections(file, filePath);
+    if (Object.hasOwn(file, "extensions")) {
+      if (!Array.isArray(file.extensions) || file.extensions.length === 0) {
+        failInput(`${filePath}.extensions`, "must be a non-empty array");
       }
-      sourceItemCount += collection.length;
-      collection.forEach((item, itemIndex) => {
-        const itemPath = `${filePath}.${collectionName}[${itemIndex}]`;
-        assertPlainObject(item, itemPath);
+      file.extensions.forEach((extension, extensionIndex) => {
+        const extensionPath = `${filePath}.extensions[${extensionIndex}]`;
+        assertPlainObject(extension, extensionPath);
         assertAllowedKeys(
-          item,
-          ["signature", "proposal", ...optionalFields],
-          itemPath,
+          extension,
+          [
+            "signature",
+            "proposal",
+            ...SOURCE_COLLECTIONS.map(([collectionName]) => collectionName),
+          ],
+          extensionPath,
         );
-        assertNonBlankString(item.signature, `${itemPath}.signature`);
-        if (Object.hasOwn(item, "proposal")) {
-          assertProposal(item.proposal, `${itemPath}.proposal`);
+        assertNonBlankString(extension.signature, `${extensionPath}.signature`);
+        if (Object.hasOwn(extension, "proposal")) {
+          assertProposal(extension.proposal, `${extensionPath}.proposal`);
         }
-        for (const field of optionalFields) {
-          if (Object.hasOwn(item, field)) {
-            assertNonBlankString(item[field], `${itemPath}.${field}`);
-          }
+        const extensionItemCount = validateSourceCollections(extension, extensionPath);
+        if (extensionItemCount === 0) {
+          failInput(extensionPath, "must contain at least one source item");
         }
+        sourceItemCount += extensionItemCount;
       });
     }
     if (sourceItemCount === 0) {
-      failInput(filePath, "must contain at least one callable, constant, or data structure");
+      failInput(filePath, "must contain at least one source item");
     }
   });
 
@@ -414,16 +501,26 @@ function findOrCreateGroup(children, kind, label) {
 }
 
 function sortTree(children) {
-  const rank = { folder: 0, file: 1, constant: 2, "data-structure": 3, callable: 4 };
+  const rank = {
+    folder: 0,
+    file: 1,
+    extension: 2,
+    constant: 3,
+    type: 4,
+    capability: 5,
+    macro: 6,
+    callable: 7,
+  };
   children.sort((left, right) => {
     const kindDifference = rank[left.kind] - rank[right.kind];
     if (kindDifference !== 0) return kindDifference;
     if (SOURCE_ITEM_KINDS.has(left.kind)) return left.order - right.order;
+    if (left.kind === "extension") return left.order - right.order;
     return compareText(left.label, right.label);
   });
 
   for (const child of children) {
-    if (child.kind === "folder" || child.kind === "file") sortTree(child.children);
+    if (GROUP_KINDS.has(child.kind)) sortTree(child.children);
   }
 }
 
@@ -448,6 +545,30 @@ function countInventoryDescendantFiles(children) {
     }
     if (child.kind === "folder") {
       return count + countInventoryDescendantFiles(child.children);
+    }
+    return count;
+  }, 0);
+}
+
+function countInventorySourceItems(children) {
+  return children.reduce((count, child) => {
+    if (SOURCE_ITEM_KINDS.has(child.kind)) {
+      return count + (child.proposal === "remove" ? 0 : 1);
+    }
+    if (child.kind === "extension") {
+      return count + countInventorySourceItems(child.children);
+    }
+    return count;
+  }, 0);
+}
+
+function countSourceItems(children, kind = null) {
+  return children.reduce((count, child) => {
+    if (SOURCE_ITEM_KINDS.has(child.kind)) {
+      return count + (kind === null || child.kind === kind ? 1 : 0);
+    }
+    if (child.kind === "extension") {
+      return count + countSourceItems(child.children, kind);
     }
     return count;
   }, 0);
@@ -482,14 +603,23 @@ function countDirectProposalChildren(children, kind, proposal) {
   ).length;
 }
 
-function sourceItemKinds(children) {
+function sourceItemKinds(children, includeNestedExtensions = false) {
   const kinds = new Set();
-  for (const child of children) {
-    if (child.kind === "callable") kinds.add("Functions");
-    if (child.kind === "constant") kinds.add("Constants");
-    if (child.kind === "data-structure") kinds.add("Structures");
-  }
-  return [...kinds];
+  const visit = (nodes) => {
+    for (const child of nodes) {
+      if (child.kind === "callable") kinds.add("Functions");
+      if (child.kind === "constant") kinds.add("Constants");
+      if (child.kind === "type") kinds.add("Types");
+      if (child.kind === "capability") kinds.add("Capabilities");
+      if (child.kind === "macro") kinds.add("Macros");
+      if (child.kind === "extension") {
+        kinds.add("Extensions");
+        if (includeNestedExtensions) visit(child.children);
+      }
+    }
+  };
+  visit(children);
+  return ITEM_KIND_ORDER.filter((kind) => kinds.has(kind));
 }
 
 function countDescendantChanges(children) {
@@ -511,10 +641,21 @@ function countDescendantChanges(children) {
 
 function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
   const signatureCounts = new Map();
+  const extensionCounts = new Map();
 
   return children.map((child) => {
-    if (child.kind === "folder" || child.kind === "file") {
-      const identity = [...ancestors, `${child.kind}:${child.label}`];
+    if (GROUP_KINDS.has(child.kind)) {
+      const extensionOccurrence = child.kind === "extension"
+        ? extensionCounts.get(child.label) ?? 0
+        : null;
+      if (child.kind === "extension") {
+        extensionCounts.set(child.label, extensionOccurrence + 1);
+      }
+      const identity = [
+        ...ancestors,
+        `${child.kind}:${child.label}`,
+        ...(extensionOccurrence === null ? [] : [`occurrence:${extensionOccurrence}`]),
+      ];
       const displayLabel = child.kind === "folder" ? `${child.label}/` : child.label;
       const childBreadcrumbParts = [...breadcrumbParts, displayLabel];
       const descendantChanges = child.kind === "folder"
@@ -529,20 +670,32 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
               descendantChanges.deletions +
               countDirectProposalChildren(child.children, "file", "remove"),
           }
-        : {
+        : child.kind === "file"
+          ? {
             additions:
               (child.changes?.additions ?? 0) +
-              countDirectProposalChildren(child.children, "source-item", "add"),
+              countDirectProposalChildren(child.children, "source-item", "add") +
+              countDirectProposalChildren(child.children, "extension", "add"),
             deletions:
               (child.changes?.deletions ?? 0) +
-              countDirectProposalChildren(child.children, "source-item", "remove"),
-          };
+              countDirectProposalChildren(child.children, "source-item", "remove") +
+              countDirectProposalChildren(child.children, "extension", "remove"),
+          }
+          : {
+              additions: countDirectProposalChildren(
+                child.children,
+                "source-item",
+                "add",
+              ),
+              deletions: countDirectProposalChildren(
+                child.children,
+                "source-item",
+                "remove",
+              ),
+            };
       const finalCount = child.kind === "folder"
         ? countInventoryDescendantFiles(child.children)
-        : child.children.filter(
-            (descendant) =>
-              SOURCE_ITEM_KINDS.has(descendant.kind) && descendant.proposal !== "remove",
-          ).length;
+        : countInventorySourceItems(child.children);
       return {
         id: `node-${digest(identity.join("\u001f"))}`,
         kind: child.kind,
@@ -555,7 +708,7 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
           ? (child.children.some((descendant) => descendant.kind === "folder")
               ? ["Folders"]
               : [])
-          : sourceItemKinds(child.children),
+          : sourceItemKinds(child.children, child.kind === "file"),
         additions: changes.additions,
         deletions: changes.deletions,
         finalCount,
@@ -564,12 +717,8 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
               fileCount: countDescendantFiles(child.children),
             }
           : {
-              callableCount: child.children.filter(
-                (descendant) => descendant.kind === "callable",
-              ).length,
-              itemCount: child.children.filter((descendant) =>
-                SOURCE_ITEM_KINDS.has(descendant.kind),
-              ).length,
+              callableCount: countSourceItems(child.children, "callable"),
+              itemCount: countSourceItems(child.children),
             }),
         breadcrumb: childBreadcrumbParts.join(" › "),
         ...(child.proposal ? { proposal: child.proposal } : {}),
@@ -663,18 +812,38 @@ export function normalizeReport(input) {
   const files = input.files
     .map((file) => ({
       segments: splitStructuralPath(file.path),
-      callables: file.callables ?? [],
-      constants: file.constants ?? [],
-      dataStructures: file.dataStructures ?? [],
+      language: file.language,
+      ...Object.fromEntries(
+        SOURCE_COLLECTIONS.map(([collectionName]) => [
+          collectionName,
+          file[collectionName] ?? [],
+        ]),
+      ),
+      extensions: (file.extensions ?? []).map((extension) => ({
+        signature: extension.signature,
+        proposal: extension.proposal,
+        ...Object.fromEntries(
+          SOURCE_COLLECTIONS.map(([collectionName]) => [
+            collectionName,
+            extension[collectionName] ?? [],
+          ]),
+        ),
+      })),
       changes: file.changes ?? { additions: 0, deletions: 0 },
       proposal: file.proposal,
     }))
     .sort((left, right) => compareSegments(left.segments, right.segments));
+  const containerHasProposal = (container) =>
+    SOURCE_COLLECTIONS.some(([collectionName]) =>
+      container[collectionName].some((item) => Boolean(item.proposal)),
+    );
   const containsProposal = files.some(
     (file) =>
       Boolean(file.proposal) ||
-      [...file.callables, ...file.constants, ...file.dataStructures]
-        .some((item) => Boolean(item.proposal)),
+      containerHasProposal(file) ||
+      file.extensions.some(
+        (extension) => Boolean(extension.proposal) || containerHasProposal(extension),
+      ),
   );
   const commonPrefixLength =
     files.length === 1 && containsProposal
@@ -682,6 +851,16 @@ export function normalizeReport(input) {
       : longestCommonPrefixLength(files.map((file) => file.segments));
   const tree = [];
   let sourceItemOrder = 0;
+  let extensionOrder = 0;
+
+  const appendSourceCollections = (container, destination) => {
+    for (const [collectionName, kind] of SOURCE_COLLECTIONS) {
+      for (const item of container[collectionName]) {
+        destination.push(cloneSourceItem(item, kind, sourceItemOrder));
+        sourceItemOrder += 1;
+      }
+    }
+  };
 
   for (const file of files) {
     const remainingSegments = file.segments.slice(commonPrefixLength);
@@ -692,32 +871,35 @@ export function normalizeReport(input) {
       const group = findOrCreateGroup(children, kind, segment);
       if (kind === "file") {
         group.changes = file.changes;
-        group.language = sourceLanguageForFile(segment);
+        group.language = file.language ?? sourceLanguageForFile(segment);
         group.proposal = file.proposal;
       }
       children = group.children;
     });
 
-    for (const [collection, kind] of [
-      [file.constants, "constant"],
-      [file.dataStructures, "data-structure"],
-      [file.callables, "callable"],
-    ]) {
-      for (const item of collection) {
-        children.push(cloneSourceItem(item, kind, sourceItemOrder));
-        sourceItemOrder += 1;
-      }
+    appendSourceCollections(file, children);
+    for (const extension of file.extensions) {
+      const extensionGroup = {
+        kind: "extension",
+        label: extension.signature,
+        order: extensionOrder,
+        children: [],
+        ...(extension.proposal ? { proposal: extension.proposal } : {}),
+      };
+      extensionOrder += 1;
+      appendSourceCollections(extension, extensionGroup.children);
+      children.push(extensionGroup);
     }
   }
 
   sortTree(tree);
   const treeWithIds = assignNodeIds(tree);
   const fingerprint = createHash("sha256")
-    .update(canonicalJson({ schemaVersion: 1, tree: treeWithIds }))
+    .update(canonicalJson({ schemaVersion: REPORT_SCHEMA_VERSION, tree: treeWithIds }))
     .digest("hex");
 
   return {
-    schemaVersion: 1,
+    schemaVersion: REPORT_SCHEMA_VERSION,
     fingerprint,
     rootId: `functions-report-${fingerprint.slice(0, 16)}`,
     tree: treeWithIds,

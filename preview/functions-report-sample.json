@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "files": [
     {
       "path": "/repo/src/client/request.ts",
@@ -24,24 +24,77 @@
       ],
       "constants": [
         {
-          "signature": "DEFAULT_RETRY_DELAY = 250",
-          "description": "Default delay before retrying a failed request."
+          "signature": "DEFAULT_RETRY_DELAY = 250"
         }
       ],
-      "dataStructures": [
+      "types": [
         {
-          "signature": "RetryPolicy { retries, delay, backoff }",
-          "description": "Configuration shape used by the request retry policy."
+          "signature": "type RetryPolicy = { retries, delay, backoff }"
+        }
+      ],
+      "capabilities": [
+        {
+          "signature": "interface RequestTransport { send(request): Promise<Response> }"
         }
       ]
     },
     {
-      "path": "/repo/src/server/routes/health.ts",
+      "path": "/repo/src/audio/RecordingBackend.swift",
+      "types": [
+        {
+          "signature": "struct RecordingResult { count: Int, urls: [String] }"
+        }
+      ],
+      "capabilities": [
+        {
+          "signature": "protocol RecordingBackend: AnyObject"
+        }
+      ],
+      "extensions": [
+        {
+          "signature": "extension RecordingBackend",
+          "callables": [
+            {
+              "signature": "recordingSummary()",
+              "returns": "String"
+            }
+          ]
+        },
+        {
+          "signature": "extension RecordingBackend where Self: Sendable",
+          "proposal": "add",
+          "callables": [
+            {
+              "signature": "recordingSnapshot()",
+              "proposal": "add",
+              "returns": "RecordingResult"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/repo/src/native/AudioHelperWire.h",
+      "language": "Objective-C++",
+      "types": [
+        {
+          "signature": "typedef struct AudioHelperRing { ... } AudioHelperRing"
+        }
+      ],
+      "macros": [
+        {
+          "signature": "#define AUDIOHELPER_MAGIC 0x54425247u"
+        },
+        {
+          "signature": "#define AUDIOHELPER_FRAME_CAPACITY 16384u"
+        }
+      ]
+    },
+    {
+      "path": "/repo/src/automation/Refresh.applescript",
       "callables": [
         {
-          "signature": "healthCheck()",
-          "returns": "HealthStatus",
-          "description": "Reports process and dependency readiness."
+          "signature": "on refreshAudioDevices()"
         }
       ]
     },
@@ -52,10 +105,6 @@
           "signature": "handleRequest(request, context)",
           "returns": "Response",
           "updates": "Records request timing and completion status."
-        },
-        {
-          "signature": "authorize(token, scope = \"read\")",
-          "returns": "Authorization"
         }
       ]
     }

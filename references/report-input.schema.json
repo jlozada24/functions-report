@@ -7,9 +7,7 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "files"],
   "properties": {
-    "schemaVersion": {
-      "const": 1
-    },
+    "schemaVersion": { "const": 2 },
     "files": {
       "type": "array",
       "minItems": 1,
@@ -21,87 +19,56 @@
         "anyOf": [
           { "required": ["callables"] },
           { "required": ["constants"] },
-          { "required": ["dataStructures"] }
+          { "required": ["types"] },
+          { "required": ["capabilities"] },
+          { "required": ["macros"] },
+          { "required": ["extensions"] }
         ],
         "properties": {
           "path": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S",
+            "$ref": "#/$defs/nonBlankText",
             "description": "Structural path containing all directory segments and the defining filename."
           },
+          "language": {
+            "$ref": "#/$defs/nonBlankText",
+            "description": "Optional explicit language or file-type label for ambiguous headers, extensionless scripts, and other paths that filename inference cannot classify correctly."
+          },
           "proposal": {
-            "enum": ["add", "remove"],
-            "description": "Marks a file that an explicit proposal would add or remove. The renderer shows a bright-green ADD or red REMOVE badge and changes only the directly enclosing folder's matching figure by one."
+            "$ref": "#/$defs/proposal",
+            "description": "Marks a file that an explicit proposal would add or remove. The renderer changes only the directly enclosing folder's matching figure by one."
           },
           "changes": {
             "type": "object",
             "additionalProperties": false,
             "required": ["additions", "deletions"],
-            "description": "Optional proposal addition and deletion figures not already represented by proposal-marked source-item rows. Ordinary reports omit this and render zeroes. These figures do not alter the inventory-derived total count badge.",
+            "description": "Optional proposal figures not already represented by proposal-marked direct children. These figures do not alter the inventory-derived total count badge.",
             "properties": {
-              "additions": {
-                "type": "integer",
-                "minimum": 0
-              },
-              "deletions": {
-                "type": "integer",
-                "minimum": 0
-              }
+              "additions": { "type": "integer", "minimum": 0 },
+              "deletions": { "type": "integer", "minimum": 0 }
             }
           },
-          "callables": {
-            "type": "array",
-            "minItems": 1,
-            "items": {
-              "type": "object",
-              "additionalProperties": false,
-              "required": ["signature"],
-              "properties": {
-                "signature": {
-                  "type": "string",
-                  "minLength": 1,
-                  "pattern": "\\S",
-                  "description": "Real source-level name and actual parameters, including empty parentheses when applicable."
-                },
-                "proposal": {
-                  "enum": ["add", "remove"],
-                  "description": "Marks a callable that an explicit proposal would add or remove. The renderer shows a bright-green ADD or red REMOVE badge and changes only the defining file's matching figure by one."
-                },
-                "returns": {
-                  "$ref": "#/$defs/nonBlankText",
-                  "description": "Material source-supported return type or result shape, without the arrow prefix."
-                },
-                "description": {
-                  "$ref": "#/$defs/nonBlankText",
-                  "description": "Concise responsibility only when the signature is not self-explanatory."
-                },
-                "uses": {
-                  "$ref": "#/$defs/nonBlankText",
-                  "description": "Architecturally important implicit dependency or side effect."
-                },
-                "updates": {
-                  "$ref": "#/$defs/nonBlankText",
-                  "description": "Architecturally important state mutation or persistence effect."
-                }
-              }
-            }
-          },
+          "callables": { "$ref": "#/$defs/callableCollection" },
           "constants": {
-            "type": "array",
-            "minItems": 1,
-            "description": "Named source constants rendered with the reserved pink system color.",
-            "items": {
-              "$ref": "#/$defs/declaration"
-            }
+            "$ref": "#/$defs/declarationCollection",
+            "description": "Named source constants rendered with the reserved neon-pink system color."
           },
-          "dataStructures": {
+          "types": {
+            "$ref": "#/$defs/declarationCollection",
+            "description": "Named classes, structs, enums, actors, records, unions, aliases, and object or JSON-like shapes rendered with the reserved dark-red system color."
+          },
+          "capabilities": {
+            "$ref": "#/$defs/declarationCollection",
+            "description": "Explicit named behavioral contracts such as protocols, interfaces, traits, and comparable abstract contracts. Do not use for merely duck-typed objects."
+          },
+          "macros": {
+            "$ref": "#/$defs/declarationCollection",
+            "description": "Named preprocessor macros and comparable explicit macro declarations."
+          },
+          "extensions": {
             "type": "array",
             "minItems": 1,
-            "description": "Named enums, object or dictionary shapes, JSON-like declarations, and similar data structures rendered with the reserved dark-red system color.",
-            "items": {
-              "$ref": "#/$defs/declaration"
-            }
+            "description": "Named source augmentation scopes rendered as expandable groups, such as Swift extensions, Objective-C categories, or explicit module/prototype augmentations.",
+            "items": { "$ref": "#/$defs/extension" }
           }
         }
       }
@@ -113,6 +80,48 @@
       "minLength": 1,
       "pattern": "\\S"
     },
+    "proposal": { "enum": ["add", "remove"] },
+    "callableCollection": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/callable" }
+    },
+    "declarationCollection": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/declaration" }
+    },
+    "callable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["signature"],
+      "properties": {
+        "signature": {
+          "$ref": "#/$defs/nonBlankText",
+          "description": "Real source-level name and actual parameters, including empty parentheses when applicable."
+        },
+        "proposal": {
+          "$ref": "#/$defs/proposal",
+          "description": "Marks a proposed addition or removal and changes only its immediate structural parent's matching figure by one."
+        },
+        "returns": {
+          "$ref": "#/$defs/nonBlankText",
+          "description": "Material source-supported return type or result shape, without the arrow prefix."
+        },
+        "description": {
+          "$ref": "#/$defs/nonBlankText",
+          "description": "Concise responsibility only when the signature is not self-explanatory."
+        },
+        "uses": {
+          "$ref": "#/$defs/nonBlankText",
+          "description": "Architecturally important implicit dependency or side effect."
+        },
+        "updates": {
+          "$ref": "#/$defs/nonBlankText",
+          "description": "Architecturally important state mutation or persistence effect."
+        }
+      }
+    },
     "declaration": {
       "type": "object",
       "additionalProperties": false,
@@ -120,16 +129,43 @@
       "properties": {
         "signature": {
           "$ref": "#/$defs/nonBlankText",
-          "description": "The real source-level declaration name or compact defining shape."
+          "description": "The real source-level declaration or compact defining shape."
         },
         "proposal": {
-          "enum": ["add", "remove"],
-          "description": "Marks a proposed addition or removal and changes only the defining file's matching figure by one."
+          "$ref": "#/$defs/proposal",
+          "description": "Marks a proposed addition or removal and changes only its immediate structural parent's matching figure by one."
         },
         "description": {
           "$ref": "#/$defs/nonBlankText",
           "description": "Concise responsibility only when the declaration is not self-explanatory."
         }
+      }
+    },
+    "extension": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["signature"],
+      "anyOf": [
+        { "required": ["callables"] },
+        { "required": ["constants"] },
+        { "required": ["types"] },
+        { "required": ["capabilities"] },
+        { "required": ["macros"] }
+      ],
+      "properties": {
+        "signature": {
+          "$ref": "#/$defs/nonBlankText",
+          "description": "Real source augmentation declaration, such as `extension RecordingBackend` or `AudioRecorder (Writer)`."
+        },
+        "proposal": {
+          "$ref": "#/$defs/proposal",
+          "description": "Marks a proposed extension addition or removal and changes only the defining file's matching figure by one."
+        },
+        "callables": { "$ref": "#/$defs/callableCollection" },
+        "constants": { "$ref": "#/$defs/declarationCollection" },
+        "types": { "$ref": "#/$defs/declarationCollection" },
+        "capabilities": { "$ref": "#/$defs/declarationCollection" },
+        "macros": { "$ref": "#/$defs/declarationCollection" }
       }
     }
   }

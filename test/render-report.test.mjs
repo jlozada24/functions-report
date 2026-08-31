@@ -31,7 +31,7 @@ const samplePreviewPath = join(
 const template = await readFile(templatePath, "utf8");
 
 function inputWith(files) {
-  return { schemaVersion: 1, files };
+  return { schemaVersion: 2, files };
 }
 
 function callable(signature, extra = {}) {
@@ -319,8 +319,8 @@ test("duplicate paths are rejected after slash normalization", () => {
 
 test("malformed schemas fail with clear field paths", () => {
   const malformedInputs = [
-    [{ schemaVersion: 2, files: [] }, /\$\.schemaVersion/],
-    [{ schemaVersion: 1, files: [] }, /\$\.files/],
+    [{ schemaVersion: 1, files: [] }, /\$\.schemaVersion/],
+    [{ schemaVersion: 2, files: [] }, /\$\.files/],
     [
       inputWith([{ path: "/repo/a.js", callables: [{}] }]),
       /\$\.files\[0\]\.callables\[0\]\.signature/,
