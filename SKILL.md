@@ -1,6 +1,7 @@
 ---
 name: functions-report
-description: Inspect requested source files or folders and produce one concise current-state or explicit-proposal functions outline, including relevant named constants, types, capabilities, macros, and extension scopes, as an interactive keyboard-review tree. Use for functions-outline requests; clearly mark proposed additions and removals, analyze without editing source, and do not produce call-flow, dependency, risk, or exhaustive source-inventory reports.
+description: Inspect requested source files or folders and produce one concise current-state or explicit-proposal functions outline, including relevant named constants, types, capabilities, macros, and extension scopes, as an interactive keyboard-review tree. Use only when the user explicitly invokes this skill for functions-outline requests; clearly mark proposed additions and removals, analyze without editing source, and do not produce call-flow, dependency, risk, or exhaustive source-inventory reports.
+disable-model-invocation: true
 ---
 
 # Functions Report
