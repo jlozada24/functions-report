@@ -1,6 +1,6 @@
 # In-app browser preview
 
-Use this workflow only when the user asks to open, show, render, preview, or verify a functions report in the in-app browser. The outcome is a live interactive report in an in-app-browser tab, not just a generated file or a URL printed in chat.
+Use this workflow only when the user asks to open, show, render, preview, or verify a functions report in the in-app browser. The outcome is a live interactive report in an in-app-browser tab, not just a generated file or a URL printed in chat. This is the one workflow where the HTML report is returned as a verified loopback website link instead of the ordinary direct local-file link; the JSON receipt remains a separate local-file artifact.
 
 Only an HTML document produced by `scripts/render-report.mjs --standalone` is a browser-preview artifact. `assets/report-template.html` is an internal fragment containing unresolved renderer placeholders; never navigate a browser to it, open it with a `file:` URL, or present it as the report. If a browser is showing that asset, replace the tab with a freshly generated standalone preview served over loopback HTTP.
 

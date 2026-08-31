@@ -12,6 +12,7 @@ import {
   ReportOutputError,
   assertTemplateContract,
   createAnnotationBundle,
+  formatLocalFileLink,
   normalizeReport,
   renderReport,
   validateReportInput,
@@ -29,6 +30,7 @@ const samplePreviewPath = join(
   "functions-report-interactive-preview.html",
 );
 const template = await readFile(templatePath, "utf8");
+const skill = await readFile(join(repositoryDirectory, "SKILL.md"), "utf8");
 
 function inputWith(files) {
   return { schemaVersion: 1, files };
@@ -428,6 +430,17 @@ test("output is a fragment with a fingerprint root and no raw single-file path",
   assert.doesNotMatch(fragment, /\b(?:fetch|XMLHttpRequest|WebSocket)\s*\(/);
 });
 
+test("skill requires a direct link to the literal generated HTML artifact", () => {
+  assert.match(skill, /surface that exact file as a direct clickable local-file link/i);
+  assert.match(skill, /Resolve a relative output path to an absolute path before linking it/i);
+  assert.match(skill, /same path passed to the renderer/i);
+  assert.match(skill, /link to `assets\/report-template\.html`/i);
+  assert.match(skill, /literal generated HTML file/i);
+  assert.match(skill, /preview-only workflow is the website-link exception/i);
+  assert.match(skill, /JSON receipt as a clickable local file/i);
+  assert.doesNotMatch(skill, /Present its complete contents as the standalone, user-visible interactive report/);
+});
+
 test("fragment wires native review navigation and the inline annotation editor", () => {
   const fragment = renderReport(
     inputWith([
@@ -810,6 +823,7 @@ test("CLI help succeeds and malformed JSON exits nonzero", async () => {
   assert.equal(help.status, 0);
   assert.match(help.stdout, /Usage: node scripts\/render-report\.mjs \[--standalone\]/);
   assert.match(help.stdout, /UTF-8 HTML document/);
+  assert.match(help.stdout, /clickable absolute local-file link/);
 
   const temporaryDirectory = await mkdtemp(join(tmpdir(), "functions-report-test-"));
   try {
@@ -837,9 +851,55 @@ test("CLI help succeeds and malformed JSON exits nonzero", async () => {
       { encoding: "utf8" },
     );
     assert.equal(standaloneResult.status, 0, standaloneResult.stderr);
+    assert.equal(
+      standaloneResult.stdout,
+      `Generated report: ${formatLocalFileLink(standaloneOutputPath)}\n`,
+    );
     const standaloneOutput = await readFile(standaloneOutputPath, "utf8");
     assert.match(standaloneOutput, /^<!doctype html>/);
     assert.match(standaloneOutput, /<meta charset="utf-8">/);
+  } finally {
+    await rm(temporaryDirectory, { recursive: true, force: true });
+  }
+});
+
+test("CLI links the exact fragment artifact and refuses the internal template", async () => {
+  const temporaryDirectory = await mkdtemp(join(tmpdir(), "functions-report-artifact-test-"));
+  try {
+    const inputPath = join(temporaryDirectory, "input.json");
+    const outputPath = join(temporaryDirectory, "generated report.html");
+    await writeFile(
+      inputPath,
+      JSON.stringify(inputWith([
+        { path: "/repo/src/report.ts", callables: [callable("render()") ] },
+      ])),
+      "utf8",
+    );
+
+    const result = spawnSync(process.execPath, [rendererPath, inputPath, outputPath], {
+      encoding: "utf8",
+    });
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(
+      result.stdout,
+      `Generated report: [generated report.html](<${outputPath}>)\n`,
+    );
+    assert.equal(
+      formatLocalFileLink(outputPath),
+      `[generated report.html](<${outputPath}>)`,
+    );
+    assert.equal(
+      await readFile(outputPath, "utf8"),
+      renderReport(JSON.parse(await readFile(inputPath, "utf8")), template),
+    );
+
+    const templateBefore = await readFile(templatePath, "utf8");
+    const templateResult = spawnSync(process.execPath, [rendererPath, inputPath, templatePath], {
+      encoding: "utf8",
+    });
+    assert.notEqual(templateResult.status, 0);
+    assert.match(templateResult.stderr, /internal report template/);
+    assert.equal(await readFile(templatePath, "utf8"), templateBefore);
   } finally {
     await rm(temporaryDirectory, { recursive: true, force: true });
   }
