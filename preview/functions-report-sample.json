@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "files": [
     {
       "path": "/repo/src/client/request.ts",

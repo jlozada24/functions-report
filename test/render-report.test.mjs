@@ -33,7 +33,7 @@ const template = await readFile(templatePath, "utf8");
 const skill = await readFile(join(repositoryDirectory, "SKILL.md"), "utf8");
 
 function inputWith(files) {
-  return { schemaVersion: 2, files };
+  return { schemaVersion: 3, files };
 }
 
 function callable(signature, extra = {}) {
@@ -125,12 +125,10 @@ test("folder tags describe contents while file tags describe inventory", () => {
     inputWith([
       {
         path: "/repo/src/client/request.js",
-        changes: { additions: 7, deletions: 2 },
         callables: [callable("send()"), callable("cancel()")],
       },
       {
         path: "/repo/src/server/handler.ts",
-        changes: { additions: 3, deletions: 1 },
         callables: [callable("handle()")],
       },
       {
@@ -161,7 +159,7 @@ test("folder tags describe contents while file tags describe inventory", () => {
       additions: client.children[0].additions,
       deletions: client.children[0].deletions,
     },
-    { additions: 7, deletions: 2 },
+    { additions: 0, deletions: 0 },
   );
   assert.equal(server.fileCount, 2);
   assert.equal(server.finalCount, 2);
@@ -184,12 +182,11 @@ test("folder tags describe contents while file tags describe inventory", () => {
   assert.equal(handler.finalCount, 1);
 });
 
-test("file change figures do not create unsupported folder change figures", () => {
+test("source-item proposal figures stop at the defining file", () => {
   const normalized = normalizeReport(
     inputWith([
       {
         path: "/repo/Sources/CodexCursorBridgeMenu/HelperPopoverView.swift",
-        changes: { additions: 1, deletions: 1 },
         callables: [
           callable("oldHelper()", { proposal: "remove" }),
           callable("newHelper()", { proposal: "add" }),
@@ -220,12 +217,34 @@ test("file change figures do not create unsupported folder change figures", () =
   );
 });
 
+test("file figures count visible proposal items rather than estimated diff lines", () => {
+  const normalized = normalizeReport(
+    inputWith([
+      {
+        path: "/repo/Tests/TurnPolicyTests.swift",
+        callables: [
+          callable("testOldBehavior()", { proposal: "remove" }),
+          callable("testImageConversion()", { proposal: "add" }),
+          callable("testTextOnlyBehavior()", { proposal: "add" }),
+          callable("testUnsupportedReference()", { proposal: "add" }),
+        ],
+      },
+    ]),
+  );
+
+  const file = normalized.tree[0];
+  assert.equal(file.label, "TurnPolicyTests.swift");
+  assert.deepEqual(
+    { additions: file.additions, deletions: file.deletions },
+    { additions: 3, deletions: 1 },
+  );
+});
+
 test("file and extension proposal figures stop at their immediate parents", () => {
   const normalized = normalizeReport(
     inputWith([
       {
         path: "/repo/src/RecordingBackend.swift",
-        changes: { additions: 1, deletions: 0 },
         callables: [
           callable("record()"),
           callable("retry()", { proposal: "add" }),
@@ -394,8 +413,8 @@ test("duplicate paths are rejected after slash normalization", () => {
 
 test("malformed schemas fail with clear field paths", () => {
   const malformedInputs = [
-    [{ schemaVersion: 1, files: [] }, /\$\.schemaVersion/],
-    [{ schemaVersion: 2, files: [] }, /\$\.files/],
+    [{ schemaVersion: 2, files: [] }, /\$\.schemaVersion/],
+    [{ schemaVersion: 3, files: [] }, /\$\.files/],
     [
       inputWith([{ path: "/repo/a.js", callables: [{}] }]),
       /\$\.files\[0\]\.callables\[0\]\.signature/,
@@ -413,11 +432,11 @@ test("malformed schemas fail with clear field paths", () => {
       inputWith([
         {
           path: "/repo/a.js",
-          changes: { additions: -1, deletions: 0 },
+          changes: { additions: 38, deletions: 17 },
           callables: [{ signature: "run()" }],
         },
       ]),
-      /\$\.files\[0\]\.changes\.additions/,
+      /unsupported property "changes"/,
     ],
   ];
 

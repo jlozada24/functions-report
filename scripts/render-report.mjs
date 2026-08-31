@@ -6,7 +6,7 @@ import { basename, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const MAX_FRAGMENT_BYTES = 1_000_000;
-export const REPORT_SCHEMA_VERSION = 2;
+export const REPORT_SCHEMA_VERSION = 3;
 
 const themedColor = (dark, light) => Object.freeze({ dark, light });
 
@@ -276,12 +276,6 @@ function assertNonBlankString(value, path) {
   }
 }
 
-function assertNonNegativeInteger(value, path) {
-  if (!Number.isInteger(value) || value < 0) {
-    failInput(path, "must be a non-negative integer");
-  }
-}
-
 function assertProposal(value, path) {
   if (value !== "add" && value !== "remove") {
     failInput(path, 'must equal "add" or "remove"');
@@ -393,7 +387,6 @@ export function validateReportInput(input) {
         "capabilities",
         "macros",
         "extensions",
-        "changes",
         "proposal",
       ],
       filePath,
@@ -405,13 +398,6 @@ export function validateReportInput(input) {
 
     if (Object.hasOwn(file, "proposal")) {
       assertProposal(file.proposal, `${filePath}.proposal`);
-    }
-
-    if (Object.hasOwn(file, "changes")) {
-      assertPlainObject(file.changes, `${filePath}.changes`);
-      assertAllowedKeys(file.changes, ["additions", "deletions"], `${filePath}.changes`);
-      assertNonNegativeInteger(file.changes.additions, `${filePath}.changes.additions`);
-      assertNonNegativeInteger(file.changes.deletions, `${filePath}.changes.deletions`);
     }
 
     const segments = splitStructuralPath(file.path, `${filePath}.path`);
@@ -675,17 +661,13 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
           }
         : child.kind === "file"
           ? {
-              additions: Math.max(
-                child.changes?.additions ?? 0,
+              additions:
                 countDirectProposalChildren(child.children, "source-item", "add") +
-                  countDirectProposalChildren(child.children, "extension", "add"),
-              ),
-              deletions: Math.max(
-                child.changes?.deletions ?? 0,
+                countDirectProposalChildren(child.children, "extension", "add"),
+              deletions:
                 countDirectProposalChildren(child.children, "source-item", "remove") +
-                  countDirectProposalChildren(child.children, "extension", "remove"),
-              ),
-           }
+                countDirectProposalChildren(child.children, "extension", "remove"),
+            }
           : {
               additions: countDirectProposalChildren(
                 child.children,
@@ -834,7 +816,6 @@ export function normalizeReport(input) {
           ]),
         ),
       })),
-      changes: file.changes ?? { additions: 0, deletions: 0 },
       proposal: file.proposal,
     }))
     .sort((left, right) => compareSegments(left.segments, right.segments));
@@ -875,7 +856,6 @@ export function normalizeReport(input) {
       const kind = index === remainingSegments.length - 1 ? "file" : "folder";
       const group = findOrCreateGroup(children, kind, segment);
       if (kind === "file") {
-        group.changes = file.changes;
         group.language = file.language ?? sourceLanguageForFile(segment);
         group.proposal = file.proposal;
       }
