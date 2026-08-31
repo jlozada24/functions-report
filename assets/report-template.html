@@ -84,7 +84,12 @@
     --fr-warn: var(--fr-yellow);
     --fr-level-folder: var(--fr-red);
     --fr-level-file: var(--fr-cyan);
+    --fr-level-extension: var(--fr-teal);
     --fr-level-callable: var(--fr-purple);
+    --fr-level-constant: var(--fr-pink);
+    --fr-level-type: var(--fr-red);
+    --fr-level-capability: var(--fr-orange);
+    --fr-level-macro: var(--fr-yellow);
     --fr-level-detail: var(--fr-green);
     --fr-syntax-keyword: #ff5cff;
     --fr-syntax-name: #ffe66d;
@@ -254,6 +259,10 @@
     --fr-file-language-color: var(--fr-level-file);
   }
 
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-extension {
+    --fr-group-color: var(--fr-level-extension);
+  }
+
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-tree > .fr-list > .fr-folder {
     --fr-group-color: var(--fr-folder-accent-color, var(--fr-level-folder));
   }
@@ -321,7 +330,8 @@
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-folder > details > summary.fr-node,
-  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-file > details > summary.fr-node {
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-file > details > summary.fr-node,
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-extension > details > summary.fr-node {
     background: color-mix(in srgb, var(--fr-row-color) 13%, var(--fr-bg-2));
     border-bottom: 1px solid color-mix(in srgb, var(--fr-row-color) 28%, var(--fr-border));
   }
@@ -428,8 +438,20 @@
     box-shadow: 0 0 7px color-mix(in srgb, var(--fr-tag-functions) 24%, transparent);
   }
 
-  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-item-kind-structures {
-    --fr-item-kind-color: var(--fr-level-data-structure);
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-item-kind-types {
+    --fr-item-kind-color: var(--fr-level-type);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-item-kind-capabilities {
+    --fr-item-kind-color: var(--fr-level-capability);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-item-kind-macros {
+    --fr-item-kind-color: var(--fr-level-macro);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-item-kind-extensions {
+    --fr-item-kind-color: var(--fr-level-extension);
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-proposal-badge {
@@ -530,8 +552,24 @@
       0 0 7px color-mix(in srgb, var(--fr-row-color) 14%, transparent);
   }
 
-  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-data-structure-node {
-    --fr-row-color: var(--fr-level-data-structure);
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-type-node {
+    --fr-row-color: var(--fr-level-type);
+    background: color-mix(in srgb, var(--fr-row-color) 13%, transparent);
+    box-shadow:
+      inset 3px 0 0 var(--fr-row-color),
+      0 0 7px color-mix(in srgb, var(--fr-row-color) 16%, transparent);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-capability-node {
+    --fr-row-color: var(--fr-level-capability);
+    background: color-mix(in srgb, var(--fr-row-color) 13%, transparent);
+    box-shadow:
+      inset 3px 0 0 var(--fr-row-color),
+      0 0 7px color-mix(in srgb, var(--fr-row-color) 16%, transparent);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-macro-node {
+    --fr-row-color: var(--fr-level-macro);
     background: color-mix(in srgb, var(--fr-row-color) 13%, transparent);
     box-shadow:
       inset 3px 0 0 var(--fr-row-color),
@@ -938,6 +976,10 @@
       themedCssColor(model.colors.structural.file),
     );
     root.style.setProperty(
+      "--fr-level-extension",
+      themedCssColor(model.colors.structural.extension),
+    );
+    root.style.setProperty(
       "--fr-level-callable",
       themedCssColor(model.colors.structural.callable),
     );
@@ -946,8 +988,16 @@
       themedCssColor(model.colors.structural.constant),
     );
     root.style.setProperty(
-      "--fr-level-data-structure",
-      themedCssColor(model.colors.structural.dataStructure),
+      "--fr-level-type",
+      themedCssColor(model.colors.structural.type),
+    );
+    root.style.setProperty(
+      "--fr-level-capability",
+      themedCssColor(model.colors.structural.capability),
+    );
+    root.style.setProperty(
+      "--fr-level-macro",
+      themedCssColor(model.colors.structural.macro),
     );
     root.style.setProperty(
       "--fr-level-detail",
@@ -982,6 +1032,14 @@
         }
         return `File ${node.label}, ${countLabel(node)}, ${changeLabel(node)}`;
       }
+      if (node.kind === "extension") {
+        const proposalLabel = node.proposal === "add"
+          ? ", addition proposal"
+          : node.proposal === "remove"
+            ? ", removal proposal"
+            : "";
+        return `Extension ${node.label}${proposalLabel}, ${countLabel(node)}, ${changeLabel(node)}`;
+      }
       const proposalLabel = node.proposal === "add"
         ? ", addition proposal"
         : node.proposal === "remove"
@@ -989,9 +1047,13 @@
           : "";
       const sourceKind = node.kind === "constant"
         ? "Constant"
-        : node.kind === "data-structure"
-          ? "Data structure"
-          : "Callable";
+        : node.kind === "type"
+          ? "Type"
+          : node.kind === "capability"
+            ? "Capability"
+            : node.kind === "macro"
+              ? "Macro"
+              : "Callable";
       return `${sourceKind} ${node.signature}${proposalLabel}${node.returns ? `, returns ${node.returns}` : ""}`;
     };
 
@@ -1079,9 +1141,10 @@
     };
 
     const syntaxKeywords = new Set([
-      "async", "await", "class", "const", "extends", "function", "get",
-      "in", "let", "new", "of", "return", "set", "static", "throw",
-      "var", "yield",
+      "actor", "async", "await", "class", "concept", "const", "enum",
+      "extends", "extension", "function", "get", "in", "interface", "let",
+      "new", "of", "protocol", "return", "set", "static", "struct", "throw",
+      "trait", "type", "typealias", "typedef", "union", "var", "yield",
     ]);
     const syntaxLiterals = new Set(["false", "null", "true", "undefined"]);
     const punctuationCharacters = "()[]{}.,:;=<>+-*/!?|&%";
@@ -1205,11 +1268,11 @@
       for (const node of nodes) {
         const item = document.createElement("li");
 
-        if (node.kind === "folder" || node.kind === "file") {
+        if (node.kind === "folder" || node.kind === "file" || node.kind === "extension") {
           item.className = `fr-group fr-${node.kind}`;
           if (node.kind === "folder") {
             item.style.setProperty("--fr-folder-accent-color", themedCssColor(folderColor(node.breadcrumb, usedFolderColorIndexes)));
-          } else {
+          } else if (node.kind === "file") {
             item.style.setProperty("--fr-file-language-color", themedCssColor(languageColor(node.language)));
           }
           const details = document.createElement("details");

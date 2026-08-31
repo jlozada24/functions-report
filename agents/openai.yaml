@@ -1,6 +1,6 @@
 interface:
   display_name: "Functions Report"
-  short_description: "Outline source callables by file structure"
+  short_description: "Outline source functions and declarations by file"
   default_prompt: "Use $functions-report to produce a concise structural functions outline for these source files or folders."
 
 policy:

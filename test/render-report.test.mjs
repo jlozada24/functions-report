@@ -33,7 +33,7 @@ const template = await readFile(templatePath, "utf8");
 const skill = await readFile(join(repositoryDirectory, "SKILL.md"), "utf8");
 
 function inputWith(files) {
-  return { schemaVersion: 1, files };
+  return { schemaVersion: 2, files };
 }
 
 function callable(signature, extra = {}) {
@@ -220,6 +220,43 @@ test("file change figures do not create unsupported folder change figures", () =
   );
 });
 
+test("file and extension proposal figures stop at their immediate parents", () => {
+  const normalized = normalizeReport(
+    inputWith([
+      {
+        path: "/repo/src/RecordingBackend.swift",
+        changes: { additions: 1, deletions: 0 },
+        callables: [
+          callable("record()"),
+          callable("retry()", { proposal: "add" }),
+        ],
+        extensions: [
+          {
+            signature: "extension RecordingBackend",
+            proposal: "add",
+            callables: [
+              callable("snapshot()", { proposal: "add" }),
+              callable("legacySnapshot()", { proposal: "remove" }),
+            ],
+          },
+        ],
+      },
+    ]),
+  );
+
+  const file = normalized.tree[0];
+  const extension = file.children.find((node) => node.kind === "extension");
+
+  assert.deepEqual(
+    { additions: file.additions, deletions: file.deletions },
+    { additions: 2, deletions: 0 },
+  );
+  assert.deepEqual(
+    { additions: extension.additions, deletions: extension.deletions },
+    { additions: 1, deletions: 1 },
+  );
+});
+
 test("structural node IDs remain stable when visible counts change", () => {
   const base = inputWith([
     {
@@ -357,8 +394,8 @@ test("duplicate paths are rejected after slash normalization", () => {
 
 test("malformed schemas fail with clear field paths", () => {
   const malformedInputs = [
-    [{ schemaVersion: 2, files: [] }, /\$\.schemaVersion/],
-    [{ schemaVersion: 1, files: [] }, /\$\.files/],
+    [{ schemaVersion: 1, files: [] }, /\$\.schemaVersion/],
+    [{ schemaVersion: 2, files: [] }, /\$\.files/],
     [
       inputWith([{ path: "/repo/a.js", callables: [{}] }]),
       /\$\.files\[0\]\.callables\[0\]\.signature/,

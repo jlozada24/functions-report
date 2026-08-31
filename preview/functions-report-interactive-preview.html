@@ -7,7 +7,7 @@
 </head>
 <body>
 <section
-  id="functions-report-c064f3d5fcbe64bb"
+  id="functions-report-afb7f0fa43f4a68f"
   class="functions-report"
   aria-label="Functions outline"
 >
@@ -35,19 +35,19 @@
   <div class="fr-tree-wrap">
     <div class="fr-tree" data-report-tree></div>
   </div>
-  <script type="application/json" data-report-model>{"tree":[{"id":"node-6cfece64110800e03b90","kind":"folder","label":"client","languages":["TypeScript"],"itemKinds":[],"additions":0,"deletions":0,"finalCount":1,"fileCount":1,"breadcrumb":"client/","children":[{"id":"node-519a99c917df569ce493","kind":"file","label":"request.ts","language":"TypeScript","languages":[],"itemKinds":["Constants","Structures","Functions"],"additions":1,"deletions":1,"finalCount":4,"callableCount":3,"itemCount":5,"breadcrumb":"client/ › request.ts","children":[{"id":"node-9f8839fba0e0d74c9d4a","kind":"constant","signature":"DEFAULT_RETRY_DELAY = 250","breadcrumb":"client/ › request.ts › DEFAULT_RETRY_DELAY = 250","description":"Default delay before retrying a failed request.","details":[{"id":"node-04d9c48812714da469b6","kind":"detail","field":"description","label":"Description","text":"Default delay before retrying a failed request.","breadcrumb":"client/ › request.ts › DEFAULT_RETRY_DELAY = 250 › Description"}]},{"id":"node-3ccbc1aeada3237cc69c","kind":"data-structure","signature":"RetryPolicy { retries, delay, backoff }","breadcrumb":"client/ › request.ts › RetryPolicy { retries, delay, backoff }","description":"Configuration shape used by the request retry policy.","details":[{"id":"node-99162c524efd8980a0ea","kind":"detail","field":"description","label":"Description","text":"Configuration shape used by the request retry policy.","breadcrumb":"client/ › request.ts › RetryPolicy { retries, delay, backoff } › Description"}]},{"id":"node-bb8649b592058b3735e6","kind":"callable","signature":"async sendRequest(url, { signal, retries = 2 })","breadcrumb":"client/ › request.ts › async sendRequest(url, { signal, retries = 2 })","returns":"Promise\u003cResponse\u003e","description":"Builds and sends a cancellable request.","uses":"The configured HTTP transport and retry policy.","details":[{"id":"node-4ef1dd4d77b87c1798a4","kind":"detail","field":"description","label":"Description","text":"Builds and sends a cancellable request.","breadcrumb":"client/ › request.ts › async sendRequest(url, { signal, retries = 2 }) › Description"},{"id":"node-444776583fadcc9917d6","kind":"detail","field":"uses","label":"Uses","text":"The configured HTTP transport and retry policy.","breadcrumb":"client/ › request.ts › async sendRequest(url, { signal, retries = 2 }) › Uses"}]},{"id":"node-ca5502b5df45010ae3d2","kind":"callable","signature":"parseResponse(response)","breadcrumb":"client/ › request.ts › parseResponse(response)","returns":"Result\u003cPayload\u003e","proposal":"remove"},{"id":"node-b1878af288912c67e7dc","kind":"callable","signature":"retryFailedRequest(request, { delay = 250 })","breadcrumb":"client/ › request.ts › retryFailedRequest(request, { delay = 250 })","returns":"Promise\u003cResponse\u003e","description":"Retries one failed request after a bounded delay.","proposal":"add","details":[{"id":"node-1b30f25f4941a0ee061e","kind":"detail","field":"description","label":"Description","text":"Retries one failed request after a bounded delay.","breadcrumb":"client/ › request.ts › retryFailedRequest(request, { delay = 250 }) › Description"}]}]}]},{"id":"node-811019d76dc5aa01c29d","kind":"folder","label":"server","languages":["TypeScript"],"itemKinds":["Folders"],"additions":0,"deletions":0,"finalCount":2,"fileCount":2,"breadcrumb":"server/","children":[{"id":"node-aca0ac4526ac69371454","kind":"folder","label":"routes","languages":["TypeScript"],"itemKinds":[],"additions":0,"deletions":0,"finalCount":1,"fileCount":1,"breadcrumb":"server/ › routes/","children":[{"id":"node-0349775b0a30d83ad6d2","kind":"file","label":"health.ts","language":"TypeScript","languages":[],"itemKinds":["Functions"],"additions":0,"deletions":0,"finalCount":1,"callableCount":1,"itemCount":1,"breadcrumb":"server/ › routes/ › health.ts","children":[{"id":"node-c85f07503cefa2ac9fe8","kind":"callable","signature":"healthCheck()","breadcrumb":"server/ › routes/ › health.ts › healthCheck()","returns":"HealthStatus","description":"Reports process and dependency readiness.","details":[{"id":"node-a1933576ca069f74e3be","kind":"detail","field":"description","label":"Description","text":"Reports process and dependency readiness.","breadcrumb":"server/ › routes/ › health.ts › healthCheck() › Description"}]}]}]},{"id":"node-9be047058bee080b91db","kind":"file","label":"handler.ts","language":"TypeScript","languages":[],"itemKinds":["Functions"],"additions":0,"deletions":0,"finalCount":2,"callableCount":2,"itemCount":2,"breadcrumb":"server/ › handler.ts","children":[{"id":"node-9653690dff721af68203","kind":"callable","signature":"handleRequest(request, context)","breadcrumb":"server/ › handler.ts › handleRequest(request, context)","returns":"Response","updates":"Records request timing and completion status.","details":[{"id":"node-8bd72fbe1bd82e1f7df4","kind":"detail","field":"updates","label":"Updates","text":"Records request timing and completion status.","breadcrumb":"server/ › handler.ts › handleRequest(request, context) › Updates"}]},{"id":"node-55579a77aae5daf20d29","kind":"callable","signature":"authorize(token, scope = \"read\")","breadcrumb":"server/ › handler.ts › authorize(token, scope = \"read\")","returns":"Authorization"}]}]}],"colors":{"structural":{"folder":{"dark":"#f4f7ff","light":"#38445c"},"file":{"dark":"#a9c7ff","light":"#2857a4"},"callable":{"dark":"#d05cff","light":"#8d00d4"},"constant":{"dark":"#ff2bd6","light":"#d000a8"},"dataStructure":{"dark":"#ff3155","light":"#a40025"},"detail":{"dark":"#aab6cc","light":"#526078"}},"folderPalette":[{"dark":"#8aa2c8","light":"#425b80"},{"dark":"#c8957a","light":"#80533d"},{"dark":"#87b39a","light":"#3f6b55"},{"dark":"#b093c5","light":"#6b4c7d"},{"dark":"#b6aa72","light":"#716423"},{"dark":"#75aab0","light":"#356a70"},{"dark":"#c68ca4","light":"#7c4961"},{"dark":"#9b9fc7","light":"#545a8b"}],"inventory":{"functions":{"dark":"#00f5ff","light":"#00c7df"}},"languageFallback":{"dark":"#c4cee0","light":"#53627a"},"languages":{"C":{"dark":"#60a5ff","light":"#005fbd"},"C#":{"dark":"#39e66e","light":"#00853e"},"C++":{"dark":"#3d8bff","light":"#004fb5"},"CSS":{"dark":"#ff5c9a","light":"#c21863"},"Go":{"dark":"#00e5ff","light":"#007f9d"},"HTML":{"dark":"#ff5b2e","light":"#c52d00"},"Java":{"dark":"#ff8a00","light":"#b24d00"},"JavaScript":{"dark":"#ffe600","light":"#8a6500"},"Kotlin":{"dark":"#ff4f87","light":"#c0004b"},"Lua":{"dark":"#7c6cff","light":"#4736c9"},"Make":{"dark":"#ff7043","light":"#b83212"},"Objective-C":{"dark":"#00a6ff","light":"#0066b3"},"Objective-C++":{"dark":"#4d7cff","light":"#1e4bb8"},"PHP":{"dark":"#9f8cff","light":"#5e45a8"},"Python":{"dark":"#00f5d4","light":"#007968"},"R":{"dark":"#4da3ff","light":"#095ca8"},"Ruby":{"dark":"#ff476d","light":"#b0002d"},"Rust":{"dark":"#ff8534","light":"#b34700"},"Sass":{"dark":"#ff66b3","light":"#b0206d"},"Shell":{"dark":"#b6f044","light":"#5e7e00"},"Source":{"dark":"#c4cee0","light":"#53627a"},"SQL":{"dark":"#00e0c0","light":"#007a69"},"Swift":{"dark":"#ff5f45","light":"#c2250d"},"TypeScript":{"dark":"#2f8cff","light":"#0064d8"},"Vue":{"dark":"#2ee89b","light":"#00895a"}}}}</script>
+  <script type="application/json" data-report-model>{"tree":[{"id":"node-686a111199834a19dcee","kind":"folder","label":"audio","languages":["Swift"],"itemKinds":[],"additions":0,"deletions":0,"finalCount":1,"fileCount":1,"breadcrumb":"audio/","children":[{"id":"node-7b9f9e1a2e30f792167d","kind":"file","label":"RecordingBackend.swift","language":"Swift","languages":[],"itemKinds":["Functions","Types","Capabilities","Extensions"],"additions":1,"deletions":0,"finalCount":4,"callableCount":2,"itemCount":4,"breadcrumb":"audio/ › RecordingBackend.swift","children":[{"id":"node-25b9126477e5a5958f65","kind":"extension","label":"extension RecordingBackend","languages":[],"itemKinds":["Functions"],"additions":0,"deletions":0,"finalCount":1,"callableCount":1,"itemCount":1,"breadcrumb":"audio/ › RecordingBackend.swift › extension RecordingBackend","children":[{"id":"node-31732de1df51b2d756d7","kind":"callable","signature":"recordingSummary()","breadcrumb":"audio/ › RecordingBackend.swift › extension RecordingBackend › recordingSummary()","returns":"String"}]},{"id":"node-b0470b9859b541f87574","kind":"extension","label":"extension RecordingBackend where Self: Sendable","languages":[],"itemKinds":["Functions"],"additions":1,"deletions":0,"finalCount":1,"callableCount":1,"itemCount":1,"breadcrumb":"audio/ › RecordingBackend.swift › extension RecordingBackend where Self: Sendable","proposal":"add","children":[{"id":"node-957d763d33611804d480","kind":"callable","signature":"recordingSnapshot()","breadcrumb":"audio/ › RecordingBackend.swift › extension RecordingBackend where Self: Sendable › recordingSnapshot()","returns":"RecordingResult","proposal":"add"}]},{"id":"node-67c1b6c8649e5efc4b87","kind":"type","signature":"struct RecordingResult { count: Int, urls: [String] }","breadcrumb":"audio/ › RecordingBackend.swift › struct RecordingResult { count: Int, urls: [String] }"},{"id":"node-dd61c5a9c691ffb3b6e2","kind":"capability","signature":"protocol RecordingBackend: AnyObject","breadcrumb":"audio/ › RecordingBackend.swift › protocol RecordingBackend: AnyObject"}]}]},{"id":"node-dc06eca30c50343f446d","kind":"folder","label":"automation","languages":["AppleScript"],"itemKinds":[],"additions":0,"deletions":0,"finalCount":1,"fileCount":1,"breadcrumb":"automation/","children":[{"id":"node-4ad5e64ac4b738fdb2ef","kind":"file","label":"Refresh.applescript","language":"AppleScript","languages":[],"itemKinds":["Functions"],"additions":0,"deletions":0,"finalCount":1,"callableCount":1,"itemCount":1,"breadcrumb":"automation/ › Refresh.applescript","children":[{"id":"node-cf77a912e144c3e4c8d1","kind":"callable","signature":"on refreshAudioDevices()","breadcrumb":"automation/ › Refresh.applescript › on refreshAudioDevices()"}]}]},{"id":"node-6cfece64110800e03b90","kind":"folder","label":"client","languages":["TypeScript"],"itemKinds":[],"additions":0,"deletions":0,"finalCount":1,"fileCount":1,"breadcrumb":"client/","children":[{"id":"node-519a99c917df569ce493","kind":"file","label":"request.ts","language":"TypeScript","languages":[],"itemKinds":["Functions","Constants","Types","Capabilities"],"additions":1,"deletions":1,"finalCount":5,"callableCount":3,"itemCount":6,"breadcrumb":"client/ › request.ts","children":[{"id":"node-9f8839fba0e0d74c9d4a","kind":"constant","signature":"DEFAULT_RETRY_DELAY = 250","breadcrumb":"client/ › request.ts › DEFAULT_RETRY_DELAY = 250"},{"id":"node-e4af78153d180db341cd","kind":"type","signature":"type RetryPolicy = { retries, delay, backoff }","breadcrumb":"client/ › request.ts › type RetryPolicy = { retries, delay, backoff }"},{"id":"node-66d9bc450f3699441720","kind":"capability","signature":"interface RequestTransport { send(request): Promise\u003cResponse\u003e }","breadcrumb":"client/ › request.ts › interface RequestTransport { send(request): Promise\u003cResponse\u003e }"},{"id":"node-bb8649b592058b3735e6","kind":"callable","signature":"async sendRequest(url, { signal, retries = 2 })","breadcrumb":"client/ › request.ts › async sendRequest(url, { signal, retries = 2 })","returns":"Promise\u003cResponse\u003e","description":"Builds and sends a cancellable request.","uses":"The configured HTTP transport and retry policy.","details":[{"id":"node-4ef1dd4d77b87c1798a4","kind":"detail","field":"description","label":"Description","text":"Builds and sends a cancellable request.","breadcrumb":"client/ › request.ts › async sendRequest(url, { signal, retries = 2 }) › Description"},{"id":"node-444776583fadcc9917d6","kind":"detail","field":"uses","label":"Uses","text":"The configured HTTP transport and retry policy.","breadcrumb":"client/ › request.ts › async sendRequest(url, { signal, retries = 2 }) › Uses"}]},{"id":"node-ca5502b5df45010ae3d2","kind":"callable","signature":"parseResponse(response)","breadcrumb":"client/ › request.ts › parseResponse(response)","returns":"Result\u003cPayload\u003e","proposal":"remove"},{"id":"node-b1878af288912c67e7dc","kind":"callable","signature":"retryFailedRequest(request, { delay = 250 })","breadcrumb":"client/ › request.ts › retryFailedRequest(request, { delay = 250 })","returns":"Promise\u003cResponse\u003e","description":"Retries one failed request after a bounded delay.","proposal":"add","details":[{"id":"node-1b30f25f4941a0ee061e","kind":"detail","field":"description","label":"Description","text":"Retries one failed request after a bounded delay.","breadcrumb":"client/ › request.ts › retryFailedRequest(request, { delay = 250 }) › Description"}]}]}]},{"id":"node-e0492dbb72c6b134bd06","kind":"folder","label":"native","languages":["Objective-C++"],"itemKinds":[],"additions":0,"deletions":0,"finalCount":1,"fileCount":1,"breadcrumb":"native/","children":[{"id":"node-8f647b44edb6b5775175","kind":"file","label":"AudioHelperWire.h","language":"Objective-C++","languages":[],"itemKinds":["Types","Macros"],"additions":0,"deletions":0,"finalCount":3,"callableCount":0,"itemCount":3,"breadcrumb":"native/ › AudioHelperWire.h","children":[{"id":"node-e018a2c35ad26d4d6e3a","kind":"type","signature":"typedef struct AudioHelperRing { ... } AudioHelperRing","breadcrumb":"native/ › AudioHelperWire.h › typedef struct AudioHelperRing { ... } AudioHelperRing"},{"id":"node-5482e27fa480fd49b6ce","kind":"macro","signature":"#define AUDIOHELPER_MAGIC 0x54425247u","breadcrumb":"native/ › AudioHelperWire.h › #define AUDIOHELPER_MAGIC 0x54425247u"},{"id":"node-f107ec547cdfce4f0867","kind":"macro","signature":"#define AUDIOHELPER_FRAME_CAPACITY 16384u","breadcrumb":"native/ › AudioHelperWire.h › #define AUDIOHELPER_FRAME_CAPACITY 16384u"}]}]},{"id":"node-811019d76dc5aa01c29d","kind":"folder","label":"server","languages":["TypeScript"],"itemKinds":[],"additions":0,"deletions":0,"finalCount":1,"fileCount":1,"breadcrumb":"server/","children":[{"id":"node-9be047058bee080b91db","kind":"file","label":"handler.ts","language":"TypeScript","languages":[],"itemKinds":["Functions"],"additions":0,"deletions":0,"finalCount":1,"callableCount":1,"itemCount":1,"breadcrumb":"server/ › handler.ts","children":[{"id":"node-9653690dff721af68203","kind":"callable","signature":"handleRequest(request, context)","breadcrumb":"server/ › handler.ts › handleRequest(request, context)","returns":"Response","updates":"Records request timing and completion status.","details":[{"id":"node-8bd72fbe1bd82e1f7df4","kind":"detail","field":"updates","label":"Updates","text":"Records request timing and completion status.","breadcrumb":"server/ › handler.ts › handleRequest(request, context) › Updates"}]}]}]}],"colors":{"structural":{"folder":{"dark":"#f4f7ff","light":"#38445c"},"file":{"dark":"#a9c7ff","light":"#2857a4"},"extension":{"dark":"#00f5d4","light":"#007968"},"callable":{"dark":"#d05cff","light":"#8d00d4"},"constant":{"dark":"#ff2bd6","light":"#d000a8"},"type":{"dark":"#ff3155","light":"#a40025"},"capability":{"dark":"#ff9f0a","light":"#b45300"},"macro":{"dark":"#ffe600","light":"#8a6500"},"detail":{"dark":"#aab6cc","light":"#526078"}},"folderPalette":[{"dark":"#8aa2c8","light":"#425b80"},{"dark":"#c8957a","light":"#80533d"},{"dark":"#87b39a","light":"#3f6b55"},{"dark":"#b093c5","light":"#6b4c7d"},{"dark":"#b6aa72","light":"#716423"},{"dark":"#75aab0","light":"#356a70"},{"dark":"#c68ca4","light":"#7c4961"},{"dark":"#9b9fc7","light":"#545a8b"}],"inventory":{"functions":{"dark":"#00f5ff","light":"#00c7df"}},"languageFallback":{"dark":"#c4cee0","light":"#53627a"},"languages":{"AppleScript":{"dark":"#8b7cff","light":"#5540bd"},"Bash":{"dark":"#a8ff3e","light":"#4f7d00"},"C":{"dark":"#60a5ff","light":"#005fbd"},"C#":{"dark":"#39e66e","light":"#00853e"},"C++":{"dark":"#3d8bff","light":"#004fb5"},"CSS":{"dark":"#ff5c9a","light":"#c21863"},"Go":{"dark":"#00e5ff","light":"#007f9d"},"HTML":{"dark":"#ff5b2e","light":"#c52d00"},"Java":{"dark":"#ff8a00","light":"#b24d00"},"JavaScript":{"dark":"#ffe600","light":"#8a6500"},"JSON":{"dark":"#ffd43b","light":"#8a6500"},"Kotlin":{"dark":"#ff4f87","light":"#c0004b"},"Lua":{"dark":"#7c6cff","light":"#4736c9"},"Make":{"dark":"#ff7043","light":"#b83212"},"Objective-C":{"dark":"#00a6ff","light":"#0066b3"},"Objective-C++":{"dark":"#4d7cff","light":"#1e4bb8"},"PBXPROJ":{"dark":"#d878ff","light":"#7a28a8"},"PHP":{"dark":"#9f8cff","light":"#5e45a8"},"Python":{"dark":"#00f5d4","light":"#007968"},"PLIST":{"dark":"#00dfa2","light":"#007458"},"R":{"dark":"#4da3ff","light":"#095ca8"},"Ruby":{"dark":"#ff476d","light":"#b0002d"},"Rust":{"dark":"#ff8534","light":"#b34700"},"Sass":{"dark":"#ff66b3","light":"#b0206d"},"Shell":{"dark":"#b6f044","light":"#5e7e00"},"Source":{"dark":"#c4cee0","light":"#53627a"},"SQL":{"dark":"#00e0c0","light":"#007a69"},"Swift":{"dark":"#ff5f45","light":"#c2250d"},"TypeScript":{"dark":"#2f8cff","light":"#0064d8"},"Vue":{"dark":"#2ee89b","light":"#00895a"},"XCCONFIG":{"dark":"#80ff44","light":"#367f00"},"Zsh":{"dark":"#70f0ff","light":"#08798a"}}}}</script>
 
   <form
     class="fr-editor"
     data-annotation-form
     hidden
-    aria-labelledby="functions-report-c064f3d5fcbe64bb-annotation-title"
+    aria-labelledby="functions-report-afb7f0fa43f4a68f-annotation-title"
   >
-    <h2 id="functions-report-c064f3d5fcbe64bb-annotation-title">Annotate node</h2>
+    <h2 id="functions-report-afb7f0fa43f4a68f-annotation-title">Annotate node</h2>
     <p class="fr-annotation-target" data-annotation-target></p>
-    <label for="functions-report-c064f3d5fcbe64bb-annotation-text">Annotation</label>
+    <label for="functions-report-afb7f0fa43f4a68f-annotation-text">Annotation</label>
     <textarea
-      id="functions-report-c064f3d5fcbe64bb-annotation-text"
+      id="functions-report-afb7f0fa43f4a68f-annotation-text"
       data-annotation-text
       rows="1"
     ></textarea>
@@ -65,7 +65,7 @@
 </section>
 
 <style>
-  #functions-report-c064f3d5fcbe64bb {
+  #functions-report-afb7f0fa43f4a68f {
     color-scheme: light dark;
     --fr-bg: #0e1014;
     --fr-bg-2: #161922;
@@ -92,7 +92,12 @@
     --fr-warn: var(--fr-yellow);
     --fr-level-folder: var(--fr-red);
     --fr-level-file: var(--fr-cyan);
+    --fr-level-extension: var(--fr-teal);
     --fr-level-callable: var(--fr-purple);
+    --fr-level-constant: var(--fr-pink);
+    --fr-level-type: var(--fr-red);
+    --fr-level-capability: var(--fr-orange);
+    --fr-level-macro: var(--fr-yellow);
     --fr-level-detail: var(--fr-green);
     --fr-syntax-keyword: #ff5cff;
     --fr-syntax-name: #ffe66d;
@@ -119,13 +124,13 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  #functions-report-c064f3d5fcbe64bb *,
-  #functions-report-c064f3d5fcbe64bb *::before,
-  #functions-report-c064f3d5fcbe64bb *::after {
+  #functions-report-afb7f0fa43f4a68f *,
+  #functions-report-afb7f0fa43f4a68f *::before,
+  #functions-report-afb7f0fa43f4a68f *::after {
     box-sizing: inherit;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-header {
+  #functions-report-afb7f0fa43f4a68f .fr-header {
     display: flex;
     gap: 12px;
     align-items: flex-end;
@@ -135,11 +140,11 @@
     border-bottom: 1px solid var(--fr-border);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-heading {
+  #functions-report-afb7f0fa43f4a68f .fr-heading {
     min-inline-size: 0;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-heading p {
+  #functions-report-afb7f0fa43f4a68f .fr-heading p {
     max-inline-size: 720px;
     margin: 2px 0 0;
     color: var(--fr-muted);
@@ -147,14 +152,14 @@
     line-height: 1.45;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-shortcuts {
+  #functions-report-afb7f0fa43f4a68f .fr-shortcuts {
     display: flex;
     flex-wrap: wrap;
     gap: 4px 10px;
     align-items: center;
   }
 
-  #functions-report-c064f3d5fcbe64bb kbd {
+  #functions-report-afb7f0fa43f4a68f kbd {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -172,14 +177,14 @@
     vertical-align: 1px;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-list {
+  #functions-report-afb7f0fa43f4a68f .fr-list {
     min-inline-size: 0;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-copy-row {
+  #functions-report-afb7f0fa43f4a68f .fr-copy-row {
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
@@ -188,7 +193,7 @@
     flex: 0 0 auto;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-copy-button {
+  #functions-report-afb7f0fa43f4a68f .fr-copy-button {
     display: inline-flex;
     gap: 6px;
     align-items: center;
@@ -202,23 +207,23 @@
     transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-copy-button:hover {
+  #functions-report-afb7f0fa43f4a68f .fr-copy-button:hover {
     background: var(--fr-button-hover);
     border-color: var(--fr-accent);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-copy-button:active {
+  #functions-report-afb7f0fa43f4a68f .fr-copy-button:active {
     transform: translateY(1px);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-copy-status {
+  #functions-report-afb7f0fa43f4a68f .fr-copy-status {
     max-inline-size: 220px;
     color: var(--fr-muted);
     font-size: 11px;
     text-align: end;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-copy-fallback {
+  #functions-report-afb7f0fa43f4a68f .fr-copy-fallback {
     position: absolute;
     inline-size: 1px;
     block-size: 1px;
@@ -227,19 +232,19 @@
     pointer-events: none;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-tree-wrap {
+  #functions-report-afb7f0fa43f4a68f .fr-tree-wrap {
     max-inline-size: 100%;
     min-inline-size: 0;
     padding: 5px 7px 18px;
     overflow-x: auto;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-tree > .fr-list {
+  #functions-report-afb7f0fa43f4a68f .fr-tree > .fr-list {
     display: grid;
     gap: 5px;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-tree > .fr-list > .fr-group {
+  #functions-report-afb7f0fa43f4a68f .fr-tree > .fr-list > .fr-group {
     --fr-group-color: var(--fr-accent);
     min-inline-size: 0;
     background: var(--fr-bg-2);
@@ -249,28 +254,32 @@
     overflow: hidden;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-tree > .fr-list > .fr-callable {
+  #functions-report-afb7f0fa43f4a68f .fr-tree > .fr-list > .fr-callable {
     --fr-group-color: var(--fr-level-callable);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-folder {
+  #functions-report-afb7f0fa43f4a68f .fr-folder {
     --fr-group-color: var(--fr-folder-accent-color, var(--fr-level-folder));
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-file {
+  #functions-report-afb7f0fa43f4a68f .fr-file {
     --fr-group-color: var(--fr-level-file);
     --fr-file-language-color: var(--fr-level-file);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-tree > .fr-list > .fr-folder {
+  #functions-report-afb7f0fa43f4a68f .fr-extension {
+    --fr-group-color: var(--fr-level-extension);
+  }
+
+  #functions-report-afb7f0fa43f4a68f .fr-tree > .fr-list > .fr-folder {
     --fr-group-color: var(--fr-folder-accent-color, var(--fr-level-folder));
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-tree > .fr-list > .fr-file {
+  #functions-report-afb7f0fa43f4a68f .fr-tree > .fr-list > .fr-file {
     --fr-group-color: var(--fr-level-file);
   }
 
-  #functions-report-c064f3d5fcbe64bb details > .fr-list {
+  #functions-report-afb7f0fa43f4a68f details > .fr-list {
     display: grid;
     gap: 0;
     margin: 0;
@@ -278,7 +287,7 @@
     min-inline-size: 0;
   }
 
-  #functions-report-c064f3d5fcbe64bb details .fr-group {
+  #functions-report-afb7f0fa43f4a68f details .fr-group {
     --fr-nested-color: color-mix(in srgb, var(--fr-group-color, var(--fr-accent)) 65%, var(--fr-border));
     min-inline-size: 0;
     background: transparent;
@@ -288,18 +297,18 @@
     overflow: visible;
   }
 
-  #functions-report-c064f3d5fcbe64bb details > .fr-list > .fr-group:last-child,
-  #functions-report-c064f3d5fcbe64bb details > .fr-list > .fr-callable:last-child {
+  #functions-report-afb7f0fa43f4a68f details > .fr-list > .fr-group:last-child,
+  #functions-report-afb7f0fa43f4a68f details > .fr-list > .fr-callable:last-child {
     border-bottom: 0;
   }
 
-  #functions-report-c064f3d5fcbe64bb details .fr-group details > .fr-list {
+  #functions-report-afb7f0fa43f4a68f details .fr-group details > .fr-list {
     margin-inline-start: 4px;
     padding: 0 0 1px 4px;
     border-inline-start: 1px solid color-mix(in srgb, var(--fr-nested-color) 45%, var(--fr-divider));
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-tree-row {
+  #functions-report-afb7f0fa43f4a68f .fr-tree-row {
     min-inline-size: 0;
     max-inline-size: 100%;
     color: var(--fr-text);
@@ -307,11 +316,11 @@
     outline: none;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-tree-row[aria-current="true"] {
+  #functions-report-afb7f0fa43f4a68f .fr-tree-row[aria-current="true"] {
     box-shadow: 0 0 0 1px var(--fr-row-color, var(--fr-accent)), 0 0 0 3px color-mix(in srgb, var(--fr-row-color, var(--fr-accent)) 22%, transparent);
   }
 
-  #functions-report-c064f3d5fcbe64bb summary.fr-node {
+  #functions-report-afb7f0fa43f4a68f summary.fr-node {
     --fr-row-color: var(--fr-group-color, var(--fr-accent));
     padding: 3px 4px;
     cursor: pointer;
@@ -319,7 +328,7 @@
     transition: background 120ms ease;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-tree > .fr-list > .fr-group > details > summary.fr-node {
+  #functions-report-afb7f0fa43f4a68f .fr-tree > .fr-list > .fr-group > details > summary.fr-node {
     padding: 5px 7px;
     background: color-mix(in srgb, var(--fr-group-color) 15%, var(--fr-bg-2));
     border-bottom: 1px solid color-mix(in srgb, var(--fr-group-color) 30%, var(--fr-border));
@@ -328,13 +337,14 @@
     font-weight: 650;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-folder > details > summary.fr-node,
-  #functions-report-c064f3d5fcbe64bb .fr-file > details > summary.fr-node {
+  #functions-report-afb7f0fa43f4a68f .fr-folder > details > summary.fr-node,
+  #functions-report-afb7f0fa43f4a68f .fr-file > details > summary.fr-node,
+  #functions-report-afb7f0fa43f4a68f .fr-extension > details > summary.fr-node {
     background: color-mix(in srgb, var(--fr-row-color) 13%, var(--fr-bg-2));
     border-bottom: 1px solid color-mix(in srgb, var(--fr-row-color) 28%, var(--fr-border));
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-file > details > summary.fr-node {
+  #functions-report-afb7f0fa43f4a68f .fr-file > details > summary.fr-node {
     background: linear-gradient(
       90deg,
       color-mix(in srgb, var(--fr-file-language-color) 16%, var(--fr-bg-2)),
@@ -349,43 +359,43 @@
       0 0 5px color-mix(in srgb, var(--fr-file-language-color) 8%, transparent);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-file > details > summary.fr-node .fr-node-label {
+  #functions-report-afb7f0fa43f4a68f .fr-file > details > summary.fr-node .fr-node-label {
     color: color-mix(in srgb, var(--fr-file-language-color) 78%, var(--fr-text));
     font-weight: 750;
     text-shadow: 0 0 3px color-mix(in srgb, var(--fr-file-language-color) 12%, transparent);
   }
 
-  #functions-report-c064f3d5fcbe64bb summary.fr-node:hover {
+  #functions-report-afb7f0fa43f4a68f summary.fr-node:hover {
     background: color-mix(in srgb, var(--fr-group-color, var(--fr-accent)) 12%, var(--fr-button-hover));
   }
 
-  #functions-report-c064f3d5fcbe64bb summary.fr-node::marker {
+  #functions-report-afb7f0fa43f4a68f summary.fr-node::marker {
     color: var(--fr-row-color, var(--fr-muted));
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-node-label,
-  #functions-report-c064f3d5fcbe64bb .fr-signature,
-  #functions-report-c064f3d5fcbe64bb .fr-return {
+  #functions-report-afb7f0fa43f4a68f .fr-node-label,
+  #functions-report-afb7f0fa43f4a68f .fr-signature,
+  #functions-report-afb7f0fa43f4a68f .fr-return {
     font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
     word-break: break-word;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-signature {
+  #functions-report-afb7f0fa43f4a68f .fr-signature {
     min-inline-size: 0;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-node-label {
+  #functions-report-afb7f0fa43f4a68f .fr-node-label {
     color: var(--fr-row-color, var(--fr-text));
     font-size: 12.5px;
     font-weight: 600;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-language-tag,
-  #functions-report-c064f3d5fcbe64bb .fr-item-kind-tag,
-  #functions-report-c064f3d5fcbe64bb .fr-proposal-badge,
-  #functions-report-c064f3d5fcbe64bb .fr-total-count {
+  #functions-report-afb7f0fa43f4a68f .fr-language-tag,
+  #functions-report-afb7f0fa43f4a68f .fr-item-kind-tag,
+  #functions-report-afb7f0fa43f4a68f .fr-proposal-badge,
+  #functions-report-afb7f0fa43f4a68f .fr-total-count {
     display: inline-flex;
     align-items: center;
     margin-inline-start: 3px;
@@ -397,7 +407,7 @@
     white-space: nowrap;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-language-tag {
+  #functions-report-afb7f0fa43f4a68f .fr-language-tag {
     --fr-language-color: var(--fr-pink);
     color: var(--fr-language-color);
     background: color-mix(in srgb, var(--fr-language-color) 18%, var(--fr-bg-3));
@@ -411,7 +421,7 @@
     line-height: 1.4;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-item-kind-tag {
+  #functions-report-afb7f0fa43f4a68f .fr-item-kind-tag {
     --fr-item-kind-color: var(--fr-level-callable);
     color: var(--fr-item-kind-color);
     background: color-mix(in srgb, var(--fr-item-kind-color) 16%, var(--fr-bg-3));
@@ -424,11 +434,11 @@
     text-transform: uppercase;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-item-kind-constants {
+  #functions-report-afb7f0fa43f4a68f .fr-item-kind-constants {
     --fr-item-kind-color: var(--fr-level-constant);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-item-kind-functions {
+  #functions-report-afb7f0fa43f4a68f .fr-item-kind-functions {
     --fr-item-kind-color: var(--fr-tag-functions);
     color: color-mix(in srgb, var(--fr-tag-functions) 72%, var(--fr-text));
     background: color-mix(in srgb, var(--fr-tag-functions) 22%, var(--fr-bg-3));
@@ -436,31 +446,43 @@
     box-shadow: 0 0 7px color-mix(in srgb, var(--fr-tag-functions) 24%, transparent);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-item-kind-structures {
-    --fr-item-kind-color: var(--fr-level-data-structure);
+  #functions-report-afb7f0fa43f4a68f .fr-item-kind-types {
+    --fr-item-kind-color: var(--fr-level-type);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-proposal-badge {
+  #functions-report-afb7f0fa43f4a68f .fr-item-kind-capabilities {
+    --fr-item-kind-color: var(--fr-level-capability);
+  }
+
+  #functions-report-afb7f0fa43f4a68f .fr-item-kind-macros {
+    --fr-item-kind-color: var(--fr-level-macro);
+  }
+
+  #functions-report-afb7f0fa43f4a68f .fr-item-kind-extensions {
+    --fr-item-kind-color: var(--fr-level-extension);
+  }
+
+  #functions-report-afb7f0fa43f4a68f .fr-proposal-badge {
     padding-inline: 5px;
     font: 850 9.5px/1.4 "SF Mono", ui-monospace, Menlo, Consolas, monospace;
     letter-spacing: 0.06em;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-proposal-add {
+  #functions-report-afb7f0fa43f4a68f .fr-proposal-add {
     color: #2a1a00;
     background: var(--fr-add);
     border-color: color-mix(in srgb, var(--fr-add) 72%, #005c24);
     box-shadow: inset 0 0 0 1px color-mix(in srgb, #ffffff 28%, transparent);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-proposal-remove {
+  #functions-report-afb7f0fa43f4a68f .fr-proposal-remove {
     color: #ffffff;
     background: var(--fr-red);
     border-color: color-mix(in srgb, var(--fr-red) 72%, #5c001b);
     box-shadow: inset 0 0 0 1px color-mix(in srgb, #ffffff 22%, transparent);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-total-count {
+  #functions-report-afb7f0fa43f4a68f .fr-total-count {
     padding-inline: 5px;
     color: color-mix(in srgb, var(--fr-row-color, var(--fr-accent)) 92%, var(--fr-text));
     background: color-mix(in srgb, var(--fr-row-color, var(--fr-accent)) 20%, var(--fr-bg-3));
@@ -469,7 +491,7 @@
     font: 850 12px/1.35 "SF Mono", ui-monospace, Menlo, Consolas, monospace;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-change-stats {
+  #functions-report-afb7f0fa43f4a68f .fr-change-stats {
     display: inline-flex;
     gap: 4px;
     align-items: baseline;
@@ -478,15 +500,15 @@
     white-space: nowrap;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-change-additions {
+  #functions-report-afb7f0fa43f4a68f .fr-change-additions {
     color: var(--fr-green);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-change-deletions {
+  #functions-report-afb7f0fa43f4a68f .fr-change-deletions {
     color: var(--fr-red);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-metadata-divider {
+  #functions-report-afb7f0fa43f4a68f .fr-metadata-divider {
     align-self: center;
     block-size: 14px;
     inline-size: 2px;
@@ -496,7 +518,7 @@
     box-shadow: 0 0 3px color-mix(in srgb, var(--fr-row-color, var(--fr-accent)) 38%, transparent);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-callable {
+  #functions-report-afb7f0fa43f4a68f .fr-callable {
     position: relative;
     min-inline-size: 0;
     padding: 0;
@@ -506,11 +528,11 @@
     border-radius: 0;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-callable-disclosure {
+  #functions-report-afb7f0fa43f4a68f .fr-callable-disclosure {
     min-inline-size: 0;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-callable-node {
+  #functions-report-afb7f0fa43f4a68f .fr-callable-node {
     --fr-row-color: var(--fr-level-callable);
     display: flex;
     flex-wrap: wrap;
@@ -530,7 +552,7 @@
     transition: background 120ms ease, border-color 120ms ease;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-constant-node {
+  #functions-report-afb7f0fa43f4a68f .fr-constant-node {
     --fr-row-color: var(--fr-level-constant);
     background: color-mix(in srgb, var(--fr-row-color) 12%, transparent);
     box-shadow:
@@ -538,19 +560,35 @@
       0 0 7px color-mix(in srgb, var(--fr-row-color) 14%, transparent);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-data-structure-node {
-    --fr-row-color: var(--fr-level-data-structure);
+  #functions-report-afb7f0fa43f4a68f .fr-type-node {
+    --fr-row-color: var(--fr-level-type);
     background: color-mix(in srgb, var(--fr-row-color) 13%, transparent);
     box-shadow:
       inset 3px 0 0 var(--fr-row-color),
       0 0 7px color-mix(in srgb, var(--fr-row-color) 16%, transparent);
   }
 
-  #functions-report-c064f3d5fcbe64bb button.fr-callable-node {
+  #functions-report-afb7f0fa43f4a68f .fr-capability-node {
+    --fr-row-color: var(--fr-level-capability);
+    background: color-mix(in srgb, var(--fr-row-color) 13%, transparent);
+    box-shadow:
+      inset 3px 0 0 var(--fr-row-color),
+      0 0 7px color-mix(in srgb, var(--fr-row-color) 16%, transparent);
+  }
+
+  #functions-report-afb7f0fa43f4a68f .fr-macro-node {
+    --fr-row-color: var(--fr-level-macro);
+    background: color-mix(in srgb, var(--fr-row-color) 13%, transparent);
+    box-shadow:
+      inset 3px 0 0 var(--fr-row-color),
+      0 0 7px color-mix(in srgb, var(--fr-row-color) 16%, transparent);
+  }
+
+  #functions-report-afb7f0fa43f4a68f button.fr-callable-node {
     appearance: none;
   }
 
-  #functions-report-c064f3d5fcbe64bb button.fr-callable-node::before {
+  #functions-report-afb7f0fa43f4a68f button.fr-callable-node::before {
     flex: 0 0 auto;
     color: color-mix(in srgb, var(--fr-row-color) 78%, var(--fr-text));
     font-size: 13px;
@@ -558,15 +596,15 @@
     content: "•";
   }
 
-  #functions-report-c064f3d5fcbe64bb summary.fr-callable-node {
+  #functions-report-afb7f0fa43f4a68f summary.fr-callable-node {
     list-style: none;
   }
 
-  #functions-report-c064f3d5fcbe64bb summary.fr-callable-node::-webkit-details-marker {
+  #functions-report-afb7f0fa43f4a68f summary.fr-callable-node::-webkit-details-marker {
     display: none;
   }
 
-  #functions-report-c064f3d5fcbe64bb summary.fr-callable-node::before {
+  #functions-report-afb7f0fa43f4a68f summary.fr-callable-node::before {
     display: inline-block;
     flex: 0 0 auto;
     color: color-mix(in srgb, var(--fr-row-color) 72%, var(--fr-muted));
@@ -579,33 +617,33 @@
     transition: transform 120ms ease;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-callable-disclosure:not([open]) > summary.fr-callable-node::before {
+  #functions-report-afb7f0fa43f4a68f .fr-callable-disclosure:not([open]) > summary.fr-callable-node::before {
     transform: rotate(0deg);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-callable-node:hover {
+  #functions-report-afb7f0fa43f4a68f .fr-callable-node:hover {
     background: var(--fr-button-hover);
     box-shadow: inset 15px 0 0 var(--fr-row-color);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-callable-content:empty {
+  #functions-report-afb7f0fa43f4a68f .fr-callable-content:empty {
     display: none;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-signature {
+  #functions-report-afb7f0fa43f4a68f .fr-signature {
     font-size: 12.25px;
     font-weight: 600;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-syntax-keyword { color: var(--fr-syntax-keyword); }
-  #functions-report-c064f3d5fcbe64bb .fr-syntax-name { color: var(--fr-syntax-name); }
-  #functions-report-c064f3d5fcbe64bb .fr-syntax-parameter { color: var(--fr-syntax-parameter); }
-  #functions-report-c064f3d5fcbe64bb .fr-syntax-punctuation { color: var(--fr-syntax-punctuation); }
-  #functions-report-c064f3d5fcbe64bb .fr-syntax-string { color: var(--fr-syntax-string); }
-  #functions-report-c064f3d5fcbe64bb .fr-syntax-literal { color: var(--fr-syntax-literal); }
-  #functions-report-c064f3d5fcbe64bb .fr-syntax-type { color: var(--fr-syntax-type); }
+  #functions-report-afb7f0fa43f4a68f .fr-syntax-keyword { color: var(--fr-syntax-keyword); }
+  #functions-report-afb7f0fa43f4a68f .fr-syntax-name { color: var(--fr-syntax-name); }
+  #functions-report-afb7f0fa43f4a68f .fr-syntax-parameter { color: var(--fr-syntax-parameter); }
+  #functions-report-afb7f0fa43f4a68f .fr-syntax-punctuation { color: var(--fr-syntax-punctuation); }
+  #functions-report-afb7f0fa43f4a68f .fr-syntax-string { color: var(--fr-syntax-string); }
+  #functions-report-afb7f0fa43f4a68f .fr-syntax-literal { color: var(--fr-syntax-literal); }
+  #functions-report-afb7f0fa43f4a68f .fr-syntax-type { color: var(--fr-syntax-type); }
 
-  #functions-report-c064f3d5fcbe64bb .fr-return {
+  #functions-report-afb7f0fa43f4a68f .fr-return {
     display: inline-flex;
     gap: 3px;
     padding: 0 4px;
@@ -616,7 +654,7 @@
     font-size: 10.5px;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-note {
+  #functions-report-afb7f0fa43f4a68f .fr-note {
     --fr-row-color: var(--fr-level-detail);
     appearance: none;
     display: flex;
@@ -637,15 +675,15 @@
     cursor: pointer;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-note-uses {
+  #functions-report-afb7f0fa43f4a68f .fr-note-uses {
     --fr-row-color: var(--fr-yellow);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-note-updates {
+  #functions-report-afb7f0fa43f4a68f .fr-note-updates {
     --fr-row-color: var(--fr-orange);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-note::before {
+  #functions-report-afb7f0fa43f4a68f .fr-note::before {
     flex: 0 0 auto;
     color: color-mix(in srgb, var(--fr-row-color) 82%, var(--fr-text));
     font-size: 13px;
@@ -653,24 +691,24 @@
     content: "•";
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-note-content {
+  #functions-report-afb7f0fa43f4a68f .fr-note-content {
     min-inline-size: 0;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-note:hover {
+  #functions-report-afb7f0fa43f4a68f .fr-note:hover {
     background: color-mix(in srgb, var(--fr-row-color) 8%, transparent);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-note-label,
-  #functions-report-c064f3d5fcbe64bb .fr-annotation-marker {
+  #functions-report-afb7f0fa43f4a68f .fr-note-label,
+  #functions-report-afb7f0fa43f4a68f .fr-annotation-marker {
     font-weight: 700;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-note-label {
+  #functions-report-afb7f0fa43f4a68f .fr-note-label {
     color: var(--fr-row-color);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-annotation-marker {
+  #functions-report-afb7f0fa43f4a68f .fr-annotation-marker {
     color: var(--fr-orange);
     font-size: 9.5px;
     letter-spacing: 0.05em;
@@ -678,11 +716,11 @@
     white-space: nowrap;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-annotation-marker::before {
+  #functions-report-afb7f0fa43f4a68f .fr-annotation-marker::before {
     content: " · ";
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-editor {
+  #functions-report-afb7f0fa43f4a68f .fr-editor {
     --fr-editor-line-size: 30px;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -698,13 +736,13 @@
     border-radius: 0;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-editor[hidden] {
+  #functions-report-afb7f0fa43f4a68f .fr-editor[hidden] {
     display: none;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-editor h2,
-  #functions-report-c064f3d5fcbe64bb .fr-editor label,
-  #functions-report-c064f3d5fcbe64bb .fr-annotation-target {
+  #functions-report-afb7f0fa43f4a68f .fr-editor h2,
+  #functions-report-afb7f0fa43f4a68f .fr-editor label,
+  #functions-report-afb7f0fa43f4a68f .fr-annotation-target {
     position: absolute;
     inline-size: 1px;
     block-size: 1px;
@@ -715,7 +753,7 @@
     white-space: nowrap;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-editor textarea {
+  #functions-report-afb7f0fa43f4a68f .fr-editor textarea {
     min-inline-size: 0;
     inline-size: calc(100% - 25px);
     block-size: var(--fr-editor-line-size);
@@ -731,20 +769,20 @@
     font: inherit;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-editor textarea:focus {
+  #functions-report-afb7f0fa43f4a68f .fr-editor textarea:focus {
     border-color: var(--fr-accent);
     outline: none;
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fr-accent) 32%, transparent);
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-editor-actions {
+  #functions-report-afb7f0fa43f4a68f .fr-editor-actions {
     display: flex;
     flex: 0 0 auto;
     gap: 3px;
     align-items: center;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-editor-actions button {
+  #functions-report-afb7f0fa43f4a68f .fr-editor-actions button {
     box-sizing: border-box;
     display: inline-flex;
     gap: 3px;
@@ -763,22 +801,22 @@
     cursor: pointer;
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-editor-actions .fr-cancel {
+  #functions-report-afb7f0fa43f4a68f .fr-editor-actions .fr-cancel {
     color: var(--fr-red);
     background: var(--fr-red);
     background: color-mix(in srgb, var(--fr-red) 14%, var(--fr-bg-2));
     border-color: color-mix(in srgb, var(--fr-red) 48%, var(--fr-border));
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-editor-actions .fr-save {
+  #functions-report-afb7f0fa43f4a68f .fr-editor-actions .fr-save {
     color: var(--fr-green);
     background: var(--fr-green);
     background: color-mix(in srgb, var(--fr-green) 14%, var(--fr-bg-2));
     border-color: color-mix(in srgb, var(--fr-green) 48%, var(--fr-border));
   }
 
-  #functions-report-c064f3d5fcbe64bb .fr-editor-actions .fr-cancel kbd,
-  #functions-report-c064f3d5fcbe64bb .fr-editor-actions .fr-save kbd {
+  #functions-report-afb7f0fa43f4a68f .fr-editor-actions .fr-cancel kbd,
+  #functions-report-afb7f0fa43f4a68f .fr-editor-actions .fr-save kbd {
     min-inline-size: 15px;
     min-block-size: 14px;
     padding: 0 3px;
@@ -789,7 +827,7 @@
   }
 
   @media (prefers-color-scheme: light) {
-    #functions-report-c064f3d5fcbe64bb {
+    #functions-report-afb7f0fa43f4a68f {
       --fr-bg: #ffffff;
       --fr-bg-2: #f5f5f7;
       --fr-bg-3: #ebebef;
@@ -830,48 +868,48 @@
   }
 
   @media (max-width: 640px) {
-    #functions-report-c064f3d5fcbe64bb .fr-header {
+    #functions-report-afb7f0fa43f4a68f .fr-header {
       display: block;
       padding: 10px;
     }
 
-    #functions-report-c064f3d5fcbe64bb .fr-copy-row {
+    #functions-report-afb7f0fa43f4a68f .fr-copy-row {
       justify-content: flex-start;
       margin-block-start: 8px;
     }
 
-    #functions-report-c064f3d5fcbe64bb .fr-copy-status {
+    #functions-report-afb7f0fa43f4a68f .fr-copy-status {
       text-align: start;
     }
 
-    #functions-report-c064f3d5fcbe64bb .fr-tree-wrap {
+    #functions-report-afb7f0fa43f4a68f .fr-tree-wrap {
       padding: 4px 4px 16px;
     }
 
-    #functions-report-c064f3d5fcbe64bb details > .fr-list {
+    #functions-report-afb7f0fa43f4a68f details > .fr-list {
       padding: 1px 2px 3px;
     }
 
-    #functions-report-c064f3d5fcbe64bb details .fr-group details > .fr-list {
+    #functions-report-afb7f0fa43f4a68f details .fr-group details > .fr-list {
       margin-inline-start: 3px;
       padding: 0 0 1px 3px;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    #functions-report-c064f3d5fcbe64bb *,
-    #functions-report-c064f3d5fcbe64bb *::before,
-    #functions-report-c064f3d5fcbe64bb *::after {
+    #functions-report-afb7f0fa43f4a68f *,
+    #functions-report-afb7f0fa43f4a68f *::before,
+    #functions-report-afb7f0fa43f4a68f *::after {
       scroll-behavior: auto !important;
       transition-duration: 0.01ms !important;
     }
   }
 
   @media (pointer: coarse) {
-    #functions-report-c064f3d5fcbe64bb .fr-copy-button,
-    #functions-report-c064f3d5fcbe64bb summary.fr-node,
-    #functions-report-c064f3d5fcbe64bb .fr-callable-node,
-    #functions-report-c064f3d5fcbe64bb .fr-note {
+    #functions-report-afb7f0fa43f4a68f .fr-copy-button,
+    #functions-report-afb7f0fa43f4a68f summary.fr-node,
+    #functions-report-afb7f0fa43f4a68f .fr-callable-node,
+    #functions-report-afb7f0fa43f4a68f .fr-note {
       min-block-size: 44px;
       padding-block: 10px;
     }
@@ -883,7 +921,7 @@
   (() => {
     "use strict";
 
-    const root = document.getElementById("functions-report-c064f3d5fcbe64bb");
+    const root = document.getElementById("functions-report-afb7f0fa43f4a68f");
     if (!root) return;
 
     const modelSource = root.querySelector("[data-report-model]");
@@ -946,6 +984,10 @@
       themedCssColor(model.colors.structural.file),
     );
     root.style.setProperty(
+      "--fr-level-extension",
+      themedCssColor(model.colors.structural.extension),
+    );
+    root.style.setProperty(
       "--fr-level-callable",
       themedCssColor(model.colors.structural.callable),
     );
@@ -954,8 +996,16 @@
       themedCssColor(model.colors.structural.constant),
     );
     root.style.setProperty(
-      "--fr-level-data-structure",
-      themedCssColor(model.colors.structural.dataStructure),
+      "--fr-level-type",
+      themedCssColor(model.colors.structural.type),
+    );
+    root.style.setProperty(
+      "--fr-level-capability",
+      themedCssColor(model.colors.structural.capability),
+    );
+    root.style.setProperty(
+      "--fr-level-macro",
+      themedCssColor(model.colors.structural.macro),
     );
     root.style.setProperty(
       "--fr-level-detail",
@@ -990,6 +1040,14 @@
         }
         return `File ${node.label}, ${countLabel(node)}, ${changeLabel(node)}`;
       }
+      if (node.kind === "extension") {
+        const proposalLabel = node.proposal === "add"
+          ? ", addition proposal"
+          : node.proposal === "remove"
+            ? ", removal proposal"
+            : "";
+        return `Extension ${node.label}${proposalLabel}, ${countLabel(node)}, ${changeLabel(node)}`;
+      }
       const proposalLabel = node.proposal === "add"
         ? ", addition proposal"
         : node.proposal === "remove"
@@ -997,9 +1055,13 @@
           : "";
       const sourceKind = node.kind === "constant"
         ? "Constant"
-        : node.kind === "data-structure"
-          ? "Data structure"
-          : "Callable";
+        : node.kind === "type"
+          ? "Type"
+          : node.kind === "capability"
+            ? "Capability"
+            : node.kind === "macro"
+              ? "Macro"
+              : "Callable";
       return `${sourceKind} ${node.signature}${proposalLabel}${node.returns ? `, returns ${node.returns}` : ""}`;
     };
 
@@ -1087,9 +1149,10 @@
     };
 
     const syntaxKeywords = new Set([
-      "async", "await", "class", "const", "extends", "function", "get",
-      "in", "let", "new", "of", "return", "set", "static", "throw",
-      "var", "yield",
+      "actor", "async", "await", "class", "concept", "const", "enum",
+      "extends", "extension", "function", "get", "in", "interface", "let",
+      "new", "of", "protocol", "return", "set", "static", "struct", "throw",
+      "trait", "type", "typealias", "typedef", "union", "var", "yield",
     ]);
     const syntaxLiterals = new Set(["false", "null", "true", "undefined"]);
     const punctuationCharacters = "()[]{}.,:;=<>+-*/!?|&%";
@@ -1213,11 +1276,11 @@
       for (const node of nodes) {
         const item = document.createElement("li");
 
-        if (node.kind === "folder" || node.kind === "file") {
+        if (node.kind === "folder" || node.kind === "file" || node.kind === "extension") {
           item.className = `fr-group fr-${node.kind}`;
           if (node.kind === "folder") {
             item.style.setProperty("--fr-folder-accent-color", themedCssColor(folderColor(node.breadcrumb, usedFolderColorIndexes)));
-          } else {
+          } else if (node.kind === "file") {
             item.style.setProperty("--fr-file-language-color", themedCssColor(languageColor(node.language)));
           }
           const details = document.createElement("details");
