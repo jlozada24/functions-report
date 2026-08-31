@@ -7,6 +7,13 @@ description: Inspect requested source files or folders and produce one concise c
 
 Inspect the requested current source scope and report its named callables plus relevant named constants, types, capabilities, macros, and extension scopes in one normalized structural hierarchy. Analyze only; do not edit the inspected source unless the user separately requests source changes.
 
+## Entry flags
+
+- `proposal_branch_scope: on | off`; default to `on` when omitted.
+  - `on`: scope an explicit-proposal report by affected folder branch, not by individual changed item. Retain every folder whose subtree contains an affected file. Within each retained folder, include every source file directly contained there and each displayed file's complete relevant named-item inventory, including unchanged sibling files and unchanged items in affected files. Retain a child folder only when its own subtree contains an affected file; omit the entire branch for every untouched sibling folder.
+  - `off`: include the complete relevant inventory for the full user-requested folder scope, including untouched branches.
+- This flag affects explicit-proposal reports only. It does not alter current-state reports or appear in the structured report input or rendered tree.
+
 ## Collect source evidence
 
 - Resolve the user-requested paths and respect deliberately narrow file, folder, or symbol scopes. Inspect enough current source to report the requested scope accurately.
@@ -20,7 +27,6 @@ Inspect the requested current source scope and report its named callables plus r
 - Omit trivial anonymous iteration, wiring callbacks, incidental local values, imports, and unnamed shapes unless the user explicitly asks for them.
 - For a current-state report, derive every displayed declaration, callable parameter, return annotation or result shape, and note from the inspected code. Do not invent missing information or descriptive names for anonymous items.
 - When the user explicitly requests a proposal, include concrete files or source items that proposal would create or remove. Mark every such item in the structured input; never present a proposed addition as though it already exists or a proposed removal as though it will remain unchanged.
-- Scope an explicit-proposal report by folder branch, not by individual changed item. Retain every folder whose subtree contains an affected file. Within each retained folder, include every source file directly contained there and each displayed file's complete relevant named-item inventory, including unchanged sibling files and unchanged items in affected files. Retain a child folder only when its own subtree contains an affected file; omit the entire branch for every untouched sibling folder. This keeps full local context along affected paths without expanding branches the proposal never touches.
 - If a requested path cannot be resolved, state that briefly before the report instead of fabricating content.
 
 ## Build structured input

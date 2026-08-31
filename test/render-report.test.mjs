@@ -696,6 +696,25 @@ test("visible-node traversal excludes descendants of every collapsed disclosure"
   assert.match(fragment, /summary\.focus\(\{ preventScroll: true \}\)/);
 });
 
+test("group disclosures start collapsed only when their change figures are zero", () => {
+  const fragment = renderReport(
+    inputWith([
+      {
+        path: "/repo/src/changed.ts",
+        callables: [callable("added()", { proposal: "add" })],
+      },
+      {
+        path: "/repo/src/unchanged.ts",
+        callables: [callable("existing()")],
+      },
+    ]),
+    template,
+  );
+
+  assert.match(fragment, /details\.open = node\.additions !== 0 \|\| node\.deletions !== 0/);
+  assert.match(fragment, /disclosure\.open = true/);
+});
+
 test("callable detail notes are bullet rows in visible keyboard traversal", () => {
   const fragment = renderReport(
     inputWith([
