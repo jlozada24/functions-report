@@ -13,11 +13,12 @@
 >
   <div class="fr-header">
     <div class="fr-heading">
-      <p class="fr-shortcuts" aria-label="Keyboard shortcuts: Up and Down navigate; Left collapses; Right expands; Option with click, Left, or Right applies that action to every item at the same level; Enter annotates. Right-click also annotates.">
+      <p class="fr-shortcuts" aria-label="Keyboard shortcuts: Up and Down navigate; Left collapses; Right expands; Option with click, Left, or Right applies that action to every item at the same level; Option and Shift applies it to every item at every level; Enter annotates. Right-click also annotates.">
         <span aria-hidden="true"><kbd>↑</kbd><kbd>↓</kbd> Navigate</span>
         <span aria-hidden="true"><kbd>←</kbd> Collapse</span>
         <span aria-hidden="true"><kbd>→</kbd> Expand</span>
         <span aria-hidden="true"><kbd>⌥</kbd>+click/<kbd>←</kbd>/<kbd>→</kbd> All at level</span>
+        <span aria-hidden="true"><kbd>⌥</kbd>+<kbd>⇧</kbd>+click/<kbd>←</kbd>/<kbd>→</kbd> All levels</span>
         <span aria-hidden="true"><kbd>↵</kbd> Annotate</span>
         <span aria-hidden="true"><kbd>R-click</kbd> Annotate</span>
       </p>
@@ -1400,6 +1401,12 @@
       }
     };
 
+    const setAllExpanded = (expanded) => {
+      for (const disclosure of root.querySelectorAll("details")) {
+        disclosure.open = expanded;
+      }
+    };
+
     const moveActiveNode = (offset) => {
       const nodes = visibleNodes();
       if (nodes.length === 0) return;
@@ -1554,7 +1561,11 @@
         const disclosure = node.matches("summary") ? node.parentElement : null;
         if (event.altKey && disclosure?.matches("details")) {
           event.preventDefault();
-          setLevelExpanded(node, !disclosure.open);
+          if (event.shiftKey) {
+            setAllExpanded(!disclosure.open);
+          } else {
+            setLevelExpanded(node, !disclosure.open);
+          }
         }
         if (node.dataset.navigationOnly !== undefined) {
           node.focus({ preventScroll: true });
@@ -1602,7 +1613,11 @@
       if (event.key === "ArrowLeft") {
         event.preventDefault();
         if (event.altKey) {
-          setLevelExpanded(node, false);
+          if (event.shiftKey) {
+            setAllExpanded(false);
+          } else {
+            setLevelExpanded(node, false);
+          }
           return;
         }
         const details = node.matches("summary") ? node.parentElement : null;
@@ -1614,7 +1629,11 @@
       if (event.key === "ArrowRight") {
         event.preventDefault();
         if (event.altKey) {
-          setLevelExpanded(node, true);
+          if (event.shiftKey) {
+            setAllExpanded(true);
+          } else {
+            setLevelExpanded(node, true);
+          }
           return;
         }
         const details = node.matches("summary") ? node.parentElement : null;
