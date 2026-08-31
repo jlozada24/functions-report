@@ -522,6 +522,14 @@ test("fragment wires native review navigation and the inline annotation editor",
   assert.match(fragment, /"ArrowUp"/);
   assert.match(fragment, /"ArrowLeft"/);
   assert.match(fragment, /"ArrowRight"/);
+  assert.match(fragment, /const levelDisclosures = \(node\) =>/);
+  assert.match(fragment, /const setLevelExpanded = \(node, expanded\) =>/);
+  assert.match(fragment, /item\.querySelector\(":scope > details"\)/);
+  assert.match(fragment, /event\.altKey && disclosure\?\.matches\("details"\)/);
+  assert.match(fragment, /setLevelExpanded\(node, !disclosure\.open\)/);
+  assert.match(fragment, /if \(event\.altKey\) \{\s*setLevelExpanded\(node, false\)/);
+  assert.match(fragment, /if \(event\.altKey\) \{\s*setLevelExpanded\(node, true\)/);
+  assert.match(fragment, /All at level/);
   assert.match(fragment, /event\.key === "Enter" \|\| event\.key === "Return"/);
   assert.match(fragment, /addEventListener\("contextmenu"/);
   assert.doesNotMatch(fragment, /addEventListener\("dblclick"/);
