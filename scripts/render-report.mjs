@@ -519,19 +519,6 @@ function sourceItemKinds(children) {
   return [...kinds];
 }
 
-function countDirectFileChanges(children) {
-  return children.reduce(
-    (totals, child) => {
-      if (child.kind === "file") {
-        totals.additions += child.changes?.additions ?? 0;
-        totals.deletions += child.changes?.deletions ?? 0;
-      }
-      return totals;
-    },
-    { additions: 0, deletions: 0 },
-  );
-}
-
 function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
   const signatureCounts = new Map();
 
@@ -540,25 +527,20 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
       const identity = [...ancestors, `${child.kind}:${child.label}`];
       const displayLabel = child.kind === "folder" ? `${child.label}/` : child.label;
       const childBreadcrumbParts = [...breadcrumbParts, displayLabel];
-      const directFileChanges = child.kind === "folder"
-        ? countDirectFileChanges(child.children)
-        : null;
       const changes = child.kind === "folder"
         ? {
-            additions:
-              directFileChanges.additions +
-              countDirectProposalChildren(child.children, "file", "add"),
-            deletions:
-              directFileChanges.deletions +
-              countDirectProposalChildren(child.children, "file", "remove"),
+            additions: countDirectProposalChildren(child.children, "file", "add"),
+            deletions: countDirectProposalChildren(child.children, "file", "remove"),
           }
         : {
-            additions:
-              (child.changes?.additions ?? 0) +
+            additions: Math.max(
+              child.changes?.additions ?? 0,
               countDirectProposalChildren(child.children, "source-item", "add"),
-            deletions:
-              (child.changes?.deletions ?? 0) +
+            ),
+            deletions: Math.max(
+              child.changes?.deletions ?? 0,
               countDirectProposalChildren(child.children, "source-item", "remove"),
+            ),
           };
       const finalCount = child.kind === "folder"
         ? countInventoryDescendantFiles(child.children)

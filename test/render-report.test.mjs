@@ -150,7 +150,7 @@ test("folder tags describe contents while file tags describe inventory", () => {
   assert.deepEqual(client.itemKinds, []);
   assert.deepEqual(
     { additions: client.additions, deletions: client.deletions },
-    { additions: 7, deletions: 2 },
+    { additions: 0, deletions: 0 },
   );
   assert.equal(client.children[0].callableCount, 2);
   assert.equal(client.children[0].finalCount, 2);
@@ -169,7 +169,7 @@ test("folder tags describe contents while file tags describe inventory", () => {
   assert.deepEqual(server.itemKinds, ["Folders"]);
   assert.deepEqual(
     { additions: server.additions, deletions: server.deletions },
-    { additions: 3, deletions: 1 },
+    { additions: 0, deletions: 0 },
   );
   assert.equal(routes.fileCount, 1);
   assert.equal(routes.finalCount, 1);
@@ -184,13 +184,16 @@ test("folder tags describe contents while file tags describe inventory", () => {
   assert.equal(handler.finalCount, 1);
 });
 
-test("folder change figures stay with the folder that directly contains changed files", () => {
+test("file change figures do not create unsupported folder change figures", () => {
   const normalized = normalizeReport(
     inputWith([
       {
         path: "/repo/Sources/CodexCursorBridgeMenu/HelperPopoverView.swift",
         changes: { additions: 1, deletions: 1 },
-        callables: [callable("showHelper()")],
+        callables: [
+          callable("oldHelper()", { proposal: "remove" }),
+          callable("newHelper()", { proposal: "add" }),
+        ],
       },
       {
         path: "/repo/Tests/CodexCursorBridgeMenuTests/HelperPopoverViewTests.swift",
@@ -209,7 +212,7 @@ test("folder change figures stay with the folder that directly contains changed 
   );
   assert.deepEqual(
     { additions: module.additions, deletions: module.deletions },
-    { additions: 1, deletions: 1 },
+    { additions: 0, deletions: 0 },
   );
   assert.deepEqual(
     { additions: file.additions, deletions: file.deletions },
