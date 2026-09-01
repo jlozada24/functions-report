@@ -1370,8 +1370,8 @@
 
     const isActivePath = (node) =>
       Boolean(node.proposal) ||
-      node.additions !== 0 ||
-      node.deletions !== 0 ||
+      node.additions > 0 ||
+      node.deletions > 0 ||
       Boolean(node.children?.some(isActivePath));
 
     const createList = (nodes) => {

@@ -770,27 +770,47 @@ test("visible-node traversal excludes descendants of every collapsed disclosure"
 });
 
 test("group disclosures expand every active proposal path and collapse unchanged branches", () => {
-  const fragment = renderReport(
-    inputWith([
-      {
-        path: "/repo/src/changed.ts",
-        callables: [callable("added()", { proposal: "add" })],
-      },
-      {
-        path: "/repo/src/unchanged.ts",
-        callables: [callable("existing()")],
-      },
-    ]),
-    template,
-  );
+  const input = inputWith([
+    {
+      path: "/repo/src/active/changed.ts",
+      callables: [callable("added()", { proposal: "add" })],
+    },
+    {
+      path: "/repo/src/active/unchanged.ts",
+      callables: [callable("existing()")],
+    },
+    {
+      path: "/repo/src/inactive/other.ts",
+      callables: [callable("other()")],
+    },
+  ]);
+  const model = normalizeReport(input);
+  const fragment = renderReport(input, template);
 
   assert.match(fragment, /const isActivePath = \(node\) =>/);
   assert.match(fragment, /Boolean\(node\.proposal\)/);
-  assert.match(fragment, /node\.additions !== 0/);
-  assert.match(fragment, /node\.deletions !== 0/);
+  assert.match(fragment, /node\.additions > 0/);
+  assert.match(fragment, /node\.deletions > 0/);
   assert.match(fragment, /Boolean\(node\.children\?\.some\(isActivePath\)\)/);
   assert.match(fragment, /details\.open = isActivePath\(node\)/);
   assert.match(fragment, /disclosure\.open = true/);
+
+  const predicateSource = fragment.match(
+    /const isActivePath = \(node\) =>[\s\S]*?(?=\n\n    const createList)/,
+  )?.[0];
+  assert.ok(predicateSource);
+  const isActivePath = Function(
+    `"use strict"; ${predicateSource}; return isActivePath;`,
+  )();
+  const activeFolder = model.tree.find((node) => node.label === "active");
+  const inactiveFolder = model.tree.find((node) => node.label === "inactive");
+  assert.ok(activeFolder);
+  assert.ok(inactiveFolder);
+  assert.equal(isActivePath(activeFolder), true);
+  assert.equal(isActivePath(activeFolder.children.find((node) => node.label === "changed.ts")), true);
+  assert.equal(isActivePath(activeFolder.children.find((node) => node.label === "unchanged.ts")), false);
+  assert.equal(isActivePath(inactiveFolder), false);
+  assert.equal(isActivePath(inactiveFolder.children[0]), false);
 });
 
 test("callable detail notes are bullet rows in visible keyboard traversal", () => {
