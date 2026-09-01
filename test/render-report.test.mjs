@@ -964,6 +964,10 @@ test("standalone preview wrapper declares UTF-8 before Unicode report content", 
   assert.ok(document.indexOf('<meta charset="utf-8">') < document.indexOf("↑"));
   assert.match(document, /<meta name="viewport" content="width=device-width, initial-scale=1">/);
   assert.match(document, /<title>Functions Report — Interactive Preview<\/title>/);
+  assert.match(document, /:root \{\n      color-scheme: light dark;\n      background: #0e1014;/);
+  assert.match(document, /body \{\n      min-block-size: calc\(100vh - 16px\);\n      margin: 8px;\n      background: inherit;/);
+  assert.match(document, /@media \(prefers-color-scheme: light\) \{[\s\S]*background: #ffffff;/);
+  assert.ok(document.indexOf("background: #0e1014") < document.indexOf("<body>"));
   assert.match(document, /<kbd>↑<\/kbd><kbd>↓<\/kbd> Navigate/);
   assert.match(document, /deletions\.textContent = `−\$\{node\.deletions\}`/);
   assert.match(document, /<\/body>\n<\/html>\n$/);

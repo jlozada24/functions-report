@@ -1060,6 +1060,24 @@ export function wrapStandaloneDocument(fragment) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Functions Report — Interactive Preview</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      background: #0e1014;
+    }
+
+    body {
+      min-block-size: calc(100vh - 16px);
+      margin: 8px;
+      background: inherit;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        background: #ffffff;
+      }
+    }
+  </style>
 </head>
 <body>
 ${fragment}
