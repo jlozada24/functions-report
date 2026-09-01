@@ -769,7 +769,7 @@ test("visible-node traversal excludes descendants of every collapsed disclosure"
   assert.match(fragment, /summary\.focus\(\{ preventScroll: true \}\)/);
 });
 
-test("group disclosures start collapsed only when their change figures are zero", () => {
+test("group disclosures expand every active proposal path and collapse unchanged branches", () => {
   const fragment = renderReport(
     inputWith([
       {
@@ -784,7 +784,12 @@ test("group disclosures start collapsed only when their change figures are zero"
     template,
   );
 
-  assert.match(fragment, /details\.open = node\.additions !== 0 \|\| node\.deletions !== 0/);
+  assert.match(fragment, /const isActivePath = \(node\) =>/);
+  assert.match(fragment, /Boolean\(node\.proposal\)/);
+  assert.match(fragment, /node\.additions !== 0/);
+  assert.match(fragment, /node\.deletions !== 0/);
+  assert.match(fragment, /Boolean\(node\.children\?\.some\(isActivePath\)\)/);
+  assert.match(fragment, /details\.open = isActivePath\(node\)/);
   assert.match(fragment, /disclosure\.open = true/);
 });
 

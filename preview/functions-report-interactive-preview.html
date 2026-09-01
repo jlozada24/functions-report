@@ -1376,6 +1376,12 @@
       }
     };
 
+    const isActivePath = (node) =>
+      Boolean(node.proposal) ||
+      node.additions !== 0 ||
+      node.deletions !== 0 ||
+      Boolean(node.children?.some(isActivePath));
+
     const createList = (nodes) => {
       const list = document.createElement("ul");
       list.className = "fr-list";
@@ -1392,7 +1398,7 @@
             item.style.setProperty("--fr-file-language-color", themedCssColor(languageColor(node.language)));
           }
           const details = document.createElement("details");
-          details.open = node.additions !== 0 || node.deletions !== 0;
+          details.open = isActivePath(node);
           details.addEventListener("toggle", reconcileCollapsedDisclosure);
           const summary = document.createElement("summary");
           summary.className = "fr-tree-row fr-node";
