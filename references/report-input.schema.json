@@ -85,6 +85,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": ["signature"],
+      "description": "A named callable. It renders as a leaf when it has no nested source collections and as an expandable group when it owns reportable local declarations.",
       "properties": {
         "signature": {
           "$ref": "#/$defs/nonBlankText",
@@ -109,6 +110,23 @@
         "updates": {
           "$ref": "#/$defs/nonBlankText",
           "description": "Architecturally important state mutation or persistence effect."
+        },
+        "callables": { "$ref": "#/$defs/callableCollection" },
+        "constants": {
+          "$ref": "#/$defs/declarationCollection",
+          "description": "Relevant named immutable values declared inside this callable."
+        },
+        "types": {
+          "$ref": "#/$defs/declarationCollection",
+          "description": "Relevant named types declared inside this callable."
+        },
+        "capabilities": {
+          "$ref": "#/$defs/declarationCollection",
+          "description": "Relevant named behavioral contracts declared inside this callable."
+        },
+        "macros": {
+          "$ref": "#/$defs/declarationCollection",
+          "description": "Relevant named macro declarations structurally owned by this callable."
         }
       }
     },

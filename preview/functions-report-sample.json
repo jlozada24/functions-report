@@ -8,7 +8,13 @@
           "signature": "async sendRequest(url, { signal, retries = 2 })",
           "returns": "Promise<Response>",
           "description": "Builds and sends a cancellable request.",
-          "uses": "The configured HTTP transport and retry policy."
+          "uses": "The configured HTTP transport and retry policy.",
+          "constants": [
+            {
+              "signature": "const requestID = crypto.randomUUID()",
+              "proposal": "add"
+            }
+          ]
         },
         {
           "signature": "parseResponse(response)",

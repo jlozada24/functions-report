@@ -673,6 +673,19 @@
     display: none;
   }
 
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-callable-content > .fr-list {
+    display: grid;
+    gap: 0;
+    margin-inline-start: 14px;
+    padding: 0 0 1px 4px;
+    border-inline-start: 1px solid color-mix(in srgb, var(--fr-level-callable) 45%, var(--fr-divider));
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-callable-content > .fr-list > .fr-callable:last-child,
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-callable-content > .fr-list > .fr-group:last-child {
+    border-bottom: 0;
+  }
+
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-signature {
     font-size: 12.25px;
     font-weight: 600;
@@ -1162,7 +1175,10 @@
             : node.kind === "macro"
               ? "Macro"
               : "Callable";
-      return `${sourceKind} ${node.signature}${proposalLabel}${node.returns ? `, returns ${node.returns}` : ""}`;
+      const childLabel = node.children?.length
+        ? `, ${countLabel(node)}, ${changeLabel(node)}`
+        : "";
+      return `${sourceKind} ${node.signature}${proposalLabel}${node.returns ? `, returns ${node.returns}` : ""}${childLabel}`;
     };
 
     const setNodeAccessibleLabel = (element) => {
@@ -1427,8 +1443,10 @@
           item.className = "fr-callable";
           if (node.kind !== "callable") item.classList.add(`fr-${node.kind}`);
           const hasDetails = Boolean(node.details?.length);
-          const callableNode = document.createElement(hasDetails ? "summary" : "button");
-          if (!hasDetails) callableNode.type = "button";
+          const hasChildren = Boolean(node.children?.length);
+          const hasDisclosure = hasDetails || hasChildren;
+          const callableNode = document.createElement(hasDisclosure ? "summary" : "button");
+          if (!hasDisclosure) callableNode.type = "button";
           callableNode.className = "fr-tree-row fr-node fr-callable-node";
           if (node.kind !== "callable") callableNode.classList.add(`fr-${node.kind}-node`);
           callableNode.dataset.nodeId = node.id;
@@ -1452,16 +1470,36 @@
             returns.append(returnArrow, returnType);
             callableNode.append(returns);
           }
+          if (hasChildren) {
+            appendTotalCount(callableNode, node);
+            const changes = document.createElement("span");
+            changes.className = "fr-change-stats";
+            changes.setAttribute("aria-hidden", "true");
+            const additions = document.createElement("span");
+            additions.className = "fr-change-additions";
+            additions.textContent = `+${node.additions}`;
+            const deletions = document.createElement("span");
+            deletions.className = "fr-change-deletions";
+            deletions.textContent = `−${node.deletions}`;
+            changes.append(additions, deletions);
+            callableNode.append(changes);
+            const divider = document.createElement("span");
+            divider.className = "fr-metadata-divider";
+            divider.setAttribute("aria-hidden", "true");
+            callableNode.append(divider);
+            appendLanguageAndKindTags(callableNode, node);
+          }
           addAnnotationMarker(callableNode);
           setNodeAccessibleLabel(callableNode);
-          if (hasDetails) {
+          if (hasDisclosure) {
             const disclosure = document.createElement("details");
             disclosure.className = "fr-callable-disclosure";
-            disclosure.open = true;
+            disclosure.open = isActivePath(node) || (!hasChildren && hasDetails);
             disclosure.addEventListener("toggle", reconcileCollapsedDisclosure);
             const content = document.createElement("div");
             content.className = "fr-callable-content";
-            for (const detail of node.details) appendNote(content, detail);
+            for (const detail of node.details ?? []) appendNote(content, detail);
+            if (hasChildren) content.append(createList(node.children));
             disclosure.append(callableNode, content);
             item.append(disclosure);
           } else {

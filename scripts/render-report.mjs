@@ -130,6 +130,15 @@ const REQUIRED_TEMPLATE_CONTRACT = [
     ],
   },
   {
+    label: "nested callable disclosures",
+    needles: [
+      "const hasChildren = Boolean(node.children?.length)",
+      "const hasDisclosure = hasDetails || hasChildren",
+      "if (hasChildren) content.append(createList(node.children))",
+      ".fr-callable-content > .fr-list",
+    ],
+  },
+  {
     label: "metadata divider",
     needles: [".fr-metadata-divider", 'divider.className = "fr-metadata-divider"'],
   },
@@ -198,6 +207,9 @@ const SOURCE_COLLECTIONS = Object.freeze([
   ["macros", "macro", OPTIONAL_DECLARATION_FIELDS],
   ["callables", "callable", OPTIONAL_CALLABLE_FIELDS],
 ]);
+const SOURCE_COLLECTION_NAMES = Object.freeze(
+  SOURCE_COLLECTIONS.map(([collectionName]) => collectionName),
+);
 const ITEM_KIND_ORDER = Object.freeze([
   "Functions",
   "Constants",
@@ -350,7 +362,7 @@ function compareSegments(left, right) {
 
 function validateSourceCollections(container, containerPath) {
   let sourceItemCount = 0;
-  for (const [collectionName, , optionalFields] of SOURCE_COLLECTIONS) {
+  for (const [collectionName, kind, optionalFields] of SOURCE_COLLECTIONS) {
     const collection = container[collectionName];
     if (collection === undefined) continue;
     if (!Array.isArray(collection) || collection.length === 0) {
@@ -362,7 +374,12 @@ function validateSourceCollections(container, containerPath) {
       assertPlainObject(item, itemPath);
       assertAllowedKeys(
         item,
-        ["signature", "proposal", ...optionalFields],
+        [
+          "signature",
+          "proposal",
+          ...optionalFields,
+          ...(kind === "callable" ? SOURCE_COLLECTION_NAMES : []),
+        ],
         itemPath,
       );
       assertNonBlankString(item.signature, `${itemPath}.signature`);
@@ -373,6 +390,9 @@ function validateSourceCollections(container, containerPath) {
         if (Object.hasOwn(item, field)) {
           assertNonBlankString(item[field], `${itemPath}.${field}`);
         }
+      }
+      if (kind === "callable") {
+        sourceItemCount += validateSourceCollections(item, itemPath);
       }
     });
   }
@@ -510,6 +530,7 @@ function cloneSourceItem(item, kind, order) {
     }
   }
   if (Object.hasOwn(item, "proposal")) result.proposal = item.proposal;
+  if (kind === "callable") result.children = [];
   return result;
 }
 
@@ -554,7 +575,7 @@ function sortTree(children) {
   });
 
   for (const child of children) {
-    if (GROUP_KINDS.has(child.kind)) sortTree(child.children);
+    if (Array.isArray(child.children)) sortTree(child.children);
   }
 }
 
@@ -587,7 +608,11 @@ function countInventoryDescendantFiles(children) {
 function countInventorySourceItems(children) {
   return children.reduce((count, child) => {
     if (SOURCE_ITEM_KINDS.has(child.kind)) {
-      return count + (child.proposal === "remove" ? 0 : 1);
+      const ownCount = child.proposal === "remove" ? 0 : 1;
+      const nestedCount = Array.isArray(child.children)
+        ? countInventorySourceItems(child.children)
+        : 0;
+      return count + ownCount + nestedCount;
     }
     if (child.kind === "extension") {
       return count + countInventorySourceItems(child.children);
@@ -599,7 +624,11 @@ function countInventorySourceItems(children) {
 function countSourceItems(children, kind = null) {
   return children.reduce((count, child) => {
     if (SOURCE_ITEM_KINDS.has(child.kind)) {
-      return count + (kind === null || child.kind === kind ? 1 : 0);
+      const ownCount = kind === null || child.kind === kind ? 1 : 0;
+      const nestedCount = Array.isArray(child.children)
+        ? countSourceItems(child.children, kind)
+        : 0;
+      return count + ownCount + nestedCount;
     }
     if (child.kind === "extension") {
       return count + countSourceItems(child.children, kind);
@@ -637,7 +666,7 @@ function countDirectProposalChildren(children, kind, proposal) {
   ).length;
 }
 
-function sourceItemKinds(children, includeNestedExtensions = false) {
+function sourceItemKinds(children, includeNestedContainers = false) {
   const kinds = new Set();
   const visit = (nodes) => {
     for (const child of nodes) {
@@ -648,7 +677,9 @@ function sourceItemKinds(children, includeNestedExtensions = false) {
       if (child.kind === "macro") kinds.add("Macros");
       if (child.kind === "extension") {
         kinds.add("Extensions");
-        if (includeNestedExtensions) visit(child.children);
+      }
+      if (includeNestedContainers && Array.isArray(child.children)) {
+        visit(child.children);
       }
     }
   };
@@ -705,6 +736,7 @@ function buildChangeSummary(tree) {
       }
       const label = ITEM_KIND_LABEL_BY_SOURCE_KIND.get(node.kind);
       if (label) incrementChange(itemKindChanges, label, node.proposal);
+      if (node.children) visit(node.children);
     }
   };
   visit(tree);
@@ -809,11 +841,12 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
       `${child.kind}:${child.signature}`,
       `occurrence:${occurrence}`,
     ];
+    const childBreadcrumbParts = [...breadcrumbParts, child.signature];
     const result = {
       id: `node-${digest(identity.join("\u001f"))}`,
       kind: child.kind,
       signature: child.signature,
-      breadcrumb: [...breadcrumbParts, child.signature].join(" › "),
+      breadcrumb: childBreadcrumbParts.join(" › "),
     };
     for (const field of OPTIONAL_CALLABLE_FIELDS) {
       if (Object.hasOwn(child, field)) result[field] = child[field];
@@ -831,6 +864,24 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
       }];
     });
     if (details.length > 0) result.details = details;
+    if (Array.isArray(child.children) && child.children.length > 0) {
+      result.additions = countDirectProposalChildren(
+        child.children,
+        "source-item",
+        "add",
+      );
+      result.deletions = countDirectProposalChildren(
+        child.children,
+        "source-item",
+        "remove",
+      );
+      result.finalCount = countInventorySourceItems(child.children);
+      result.callableCount = countSourceItems(child.children, "callable");
+      result.itemCount = countSourceItems(child.children);
+      result.itemKinds = sourceItemKinds(child.children);
+      result.languages = [];
+      result.children = assignNodeIds(child.children, identity, childBreadcrumbParts);
+    }
     return result;
   });
 }
@@ -907,9 +958,14 @@ export function normalizeReport(input) {
       proposal: file.proposal,
     }))
     .sort((left, right) => compareSegments(left.segments, right.segments));
+  const sourceItemHasProposal = (item) =>
+    Boolean(item.proposal) ||
+    SOURCE_COLLECTIONS.some(([collectionName]) =>
+      (item[collectionName] ?? []).some(sourceItemHasProposal),
+    );
   const containerHasProposal = (container) =>
     SOURCE_COLLECTIONS.some(([collectionName]) =>
-      container[collectionName].some((item) => Boolean(item.proposal)),
+      (container[collectionName] ?? []).some(sourceItemHasProposal),
     );
   const containsProposal = files.some(
     (file) =>
@@ -929,9 +985,13 @@ export function normalizeReport(input) {
 
   const appendSourceCollections = (container, destination) => {
     for (const [collectionName, kind] of SOURCE_COLLECTIONS) {
-      for (const item of container[collectionName]) {
-        destination.push(cloneSourceItem(item, kind, sourceItemOrder));
+      for (const item of container[collectionName] ?? []) {
+        const clonedItem = cloneSourceItem(item, kind, sourceItemOrder);
         sourceItemOrder += 1;
+        if (kind === "callable") {
+          appendSourceCollections(item, clonedItem.children);
+        }
+        destination.push(clonedItem);
       }
     }
   };
