@@ -99,6 +99,20 @@ const REQUIRED_TEMPLATE_CONTRACT = [
     ],
   },
   {
+    label: "top-only change summary badges",
+    needles: [
+      "data-change-summary",
+      'root.querySelector("[data-change-summary]")',
+      ".fr-change-summary",
+      ".fr-summary-badge-additions",
+      ".fr-summary-badge-deletions",
+      "for (const change of model.changeSummary)",
+      "if (change.additions !== 0)",
+      "if (change.deletions !== 0)",
+      "summaryTarget.hidden = model.changeSummary.length === 0",
+    ],
+  },
+  {
     label: "prominent total count badge",
     needles: [
       ".fr-total-count",
@@ -191,6 +205,13 @@ const ITEM_KIND_ORDER = Object.freeze([
   "Capabilities",
   "Macros",
   "Extensions",
+]);
+const ITEM_KIND_LABEL_BY_SOURCE_KIND = new Map([
+  ["callable", "Functions"],
+  ["constant", "Constants"],
+  ["type", "Types"],
+  ["capability", "Capabilities"],
+  ["macro", "Macros"],
 ]);
 const LANGUAGE_BY_EXTENSION = new Map([
   ["applescript", "AppleScript"], ["bash", "Bash"], ["c", "C"],
@@ -635,6 +656,73 @@ function sourceItemKinds(children, includeNestedExtensions = false) {
   return ITEM_KIND_ORDER.filter((kind) => kinds.has(kind));
 }
 
+function incrementChange(changesByLabel, label, proposal) {
+  if (proposal !== "add" && proposal !== "remove") return;
+  const changes = changesByLabel.get(label) ?? { additions: 0, deletions: 0 };
+  if (proposal === "add") changes.additions += 1;
+  if (proposal === "remove") changes.deletions += 1;
+  changesByLabel.set(label, changes);
+}
+
+function folderProposal(node) {
+  const proposals = [];
+  const visit = (children) => {
+    for (const child of children) {
+      if (child.kind === "file") proposals.push(child.proposal);
+      if (child.kind === "folder") visit(child.children);
+    }
+  };
+  visit(node.children);
+  if (proposals.length === 0) return null;
+  if (proposals.every((proposal) => proposal === "add")) return "add";
+  if (proposals.every((proposal) => proposal === "remove")) return "remove";
+  return null;
+}
+
+function buildChangeSummary(tree) {
+  const folderChanges = { additions: 0, deletions: 0 };
+  const languageChanges = new Map();
+  const itemKindChanges = new Map();
+
+  const visit = (nodes) => {
+    for (const node of nodes) {
+      if (node.kind === "folder") {
+        const proposal = folderProposal(node);
+        if (proposal === "add") folderChanges.additions += 1;
+        if (proposal === "remove") folderChanges.deletions += 1;
+        visit(node.children);
+        continue;
+      }
+      if (node.kind === "file") {
+        incrementChange(languageChanges, node.language, node.proposal);
+        visit(node.children);
+        continue;
+      }
+      if (node.kind === "extension") {
+        incrementChange(itemKindChanges, "Extensions", node.proposal);
+        visit(node.children);
+        continue;
+      }
+      const label = ITEM_KIND_LABEL_BY_SOURCE_KIND.get(node.kind);
+      if (label) incrementChange(itemKindChanges, label, node.proposal);
+    }
+  };
+  visit(tree);
+
+  const summary = [];
+  if (folderChanges.additions !== 0 || folderChanges.deletions !== 0) {
+    summary.push({ kind: "folders", label: "Folders", ...folderChanges });
+  }
+  for (const label of [...languageChanges.keys()].sort(compareText)) {
+    summary.push({ kind: "language", label, ...languageChanges.get(label) });
+  }
+  for (const label of ITEM_KIND_ORDER) {
+    const changes = itemKindChanges.get(label);
+    if (changes) summary.push({ kind: "item-kind", label, ...changes });
+  }
+  return summary;
+}
+
 function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
   const signatureCounts = new Map();
   const extensionCounts = new Map();
@@ -879,14 +967,20 @@ export function normalizeReport(input) {
 
   sortTree(tree);
   const treeWithIds = assignNodeIds(tree);
+  const changeSummary = buildChangeSummary(treeWithIds);
   const fingerprint = createHash("sha256")
-    .update(canonicalJson({ schemaVersion: REPORT_SCHEMA_VERSION, tree: treeWithIds }))
+    .update(canonicalJson({
+      schemaVersion: REPORT_SCHEMA_VERSION,
+      tree: treeWithIds,
+      changeSummary,
+    }))
     .digest("hex");
 
   return {
     schemaVersion: REPORT_SCHEMA_VERSION,
     fingerprint,
     rootId: `functions-report-${fingerprint.slice(0, 16)}`,
+    changeSummary,
     tree: treeWithIds,
   };
 }
@@ -935,6 +1029,7 @@ export function renderNormalizedReport(model, template) {
   assertTemplateContract(template);
 
   const embeddedModel = escapeJsonForHtml({
+    changeSummary: model.changeSummary,
     tree: model.tree,
     colors: REPORT_COLOR_CONFIG,
   });

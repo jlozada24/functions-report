@@ -26,6 +26,13 @@
       <span class="fr-copy-status" data-copy-status role="status" aria-live="polite"></span>
     </div>
   </div>
+  <div
+    class="fr-change-summary"
+    data-change-summary
+    role="list"
+    aria-label="Change summary"
+    hidden
+  ></div>
   <div class="fr-tree-wrap">
     <div class="fr-tree" data-report-tree></div>
   </div>
@@ -136,6 +143,48 @@
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-heading {
     min-inline-size: 0;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-change-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
+    padding: 7px 12px;
+    background: color-mix(in srgb, var(--fr-bg-2) 82%, var(--fr-header-1));
+    border-bottom: 1px solid var(--fr-border);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-change-summary[hidden] {
+    display: none;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-change-summary .fr-language-tag,
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-change-summary .fr-item-kind-tag {
+    margin-inline-start: 0;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-change-summary .fr-summary-folders {
+    --fr-item-kind-color: var(--fr-level-folder);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-summary-badge-stats {
+    display: inline-flex;
+    gap: 4px;
+    align-items: baseline;
+    margin-inline-start: 4px;
+    padding-inline-start: 4px;
+    border-inline-start: 1px solid currentColor;
+    font: 850 10px/1.2 "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    letter-spacing: 0;
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-summary-badge-additions {
+    color: var(--fr-green);
+  }
+
+  #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-summary-badge-deletions {
+    color: var(--fr-red);
   }
 
   #%%FUNCTIONS_REPORT_ROOT_ID%% .fr-heading p {
@@ -919,6 +968,7 @@
     if (!root) return;
 
     const modelSource = root.querySelector("[data-report-model]");
+    const summaryTarget = root.querySelector("[data-change-summary]");
     const treeTarget = root.querySelector("[data-report-tree]");
     const copyButton = root.querySelector("[data-copy-annotations]");
     const copyStatus = root.querySelector("[data-copy-status]");
@@ -929,6 +979,7 @@
     const saveButton = root.querySelector("[data-annotation-save]");
     if (
       !modelSource ||
+      !summaryTarget ||
       !treeTarget ||
       !copyButton ||
       !copyStatus ||
@@ -1009,6 +1060,61 @@
       "--fr-tag-functions",
       themedCssColor(model.colors.inventory.functions),
     );
+
+    const summaryChangeLabel = (change) => {
+      const parts = [];
+      if (change.additions !== 0) {
+        parts.push(`${change.additions} addition${change.additions === 1 ? "" : "s"}`);
+      }
+      if (change.deletions !== 0) {
+        parts.push(`${change.deletions} deletion${change.deletions === 1 ? "" : "s"}`);
+      }
+      return `${change.label}, ${parts.join(", ")}`;
+    };
+
+    const appendSummaryBadge = (change) => {
+      const badge = document.createElement("span");
+      badge.className = change.kind === "language"
+        ? "fr-language-tag"
+        : "fr-item-kind-tag";
+      if (change.kind === "folders") {
+        badge.classList.add("fr-summary-folders");
+      }
+      if (change.kind === "item-kind") {
+        badge.classList.add(`fr-item-kind-${change.label.toLowerCase().replaceAll(" ", "-")}`);
+      }
+      if (change.kind === "language") {
+        badge.style.setProperty(
+          "--fr-language-color",
+          themedCssColor(languageColor(change.label)),
+        );
+      }
+      badge.setAttribute("role", "listitem");
+      badge.setAttribute("aria-label", summaryChangeLabel(change));
+
+      const label = document.createElement("span");
+      label.textContent = change.label;
+      const stats = document.createElement("span");
+      stats.className = "fr-summary-badge-stats";
+      stats.setAttribute("aria-hidden", "true");
+      if (change.additions !== 0) {
+        const additions = document.createElement("span");
+        additions.className = "fr-summary-badge-additions";
+        additions.textContent = `+${change.additions}`;
+        stats.append(additions);
+      }
+      if (change.deletions !== 0) {
+        const deletions = document.createElement("span");
+        deletions.className = "fr-summary-badge-deletions";
+        deletions.textContent = `−${change.deletions}`;
+        stats.append(deletions);
+      }
+      badge.append(label, stats);
+      summaryTarget.append(badge);
+    };
+
+    for (const change of model.changeSummary) appendSummaryBadge(change);
+    summaryTarget.hidden = model.changeSummary.length === 0;
 
     const annotations = new Map();
     let activeNode = null;

@@ -182,6 +182,79 @@ test("folder tags describe contents while file tags describe inventory", () => {
   assert.equal(handler.finalCount, 1);
 });
 
+test("global change summary counts only matching proposed entities", () => {
+  const normalized = normalizeReport(
+    inputWith([
+      {
+        path: "/repo/src/new/deep/widget.js",
+        proposal: "add",
+        callables: [callable("mountWidget()", { proposal: "add" })],
+        constants: [{ signature: "WIDGET_ROOT = '#widget'", proposal: "add" }],
+      },
+      {
+        path: "/repo/src/new/deep/options.js",
+        proposal: "add",
+        types: [{ signature: "type WidgetOptions = { compact: boolean }", proposal: "add" }],
+      },
+      {
+        path: "/repo/src/legacy/old.ts",
+        proposal: "remove",
+        callables: [callable("legacyMount()", { proposal: "remove" })],
+        macros: [{ signature: "LEGACY_WIDGET", proposal: "remove" }],
+      },
+      {
+        path: "/repo/src/existing/mixed/new_worker.py",
+        proposal: "add",
+        callables: [callable("run_worker()", { proposal: "add" })],
+      },
+      {
+        path: "/repo/src/existing/mixed/current_worker.py",
+        callables: [callable("stop_worker()")],
+      },
+      {
+        path: "/repo/src/existing/Stable.swift",
+        capabilities: [
+          { signature: "protocol LegacyCapability", proposal: "remove" },
+        ],
+        extensions: [
+          {
+            signature: "extension Stable",
+            proposal: "add",
+            callables: [callable("newExtensionMember()", { proposal: "add" })],
+          },
+        ],
+      },
+    ]),
+  );
+
+  assert.deepEqual(normalized.changeSummary, [
+    { kind: "folders", label: "Folders", additions: 2, deletions: 1 },
+    { kind: "language", label: "JavaScript", additions: 2, deletions: 0 },
+    { kind: "language", label: "Python", additions: 1, deletions: 0 },
+    { kind: "language", label: "TypeScript", additions: 0, deletions: 1 },
+    { kind: "item-kind", label: "Functions", additions: 3, deletions: 1 },
+    { kind: "item-kind", label: "Constants", additions: 1, deletions: 0 },
+    { kind: "item-kind", label: "Types", additions: 1, deletions: 0 },
+    { kind: "item-kind", label: "Capabilities", additions: 0, deletions: 1 },
+    { kind: "item-kind", label: "Macros", additions: 0, deletions: 1 },
+    { kind: "item-kind", label: "Extensions", additions: 1, deletions: 0 },
+  ]);
+});
+
+test("current-state reports omit the global change summary", () => {
+  const normalized = normalizeReport(
+    inputWith([
+      {
+        path: "/repo/src/current.js",
+        callables: [callable("current()")],
+        constants: [{ signature: "CURRENT = true" }],
+      },
+    ]),
+  );
+
+  assert.deepEqual(normalized.changeSummary, []);
+});
+
 test("source-item proposal figures stop at the defining file", () => {
   const normalized = normalizeReport(
     inputWith([
@@ -807,6 +880,14 @@ test("fragment renders the reference-inspired responsive report shell", () => {
   );
 
   assert.match(fragment, /<div class="fr-header">/);
+  assert.match(fragment, /class="fr-change-summary"[\s\S]*?data-change-summary[\s\S]*?hidden/);
+  assert.match(fragment, /for \(const change of model\.changeSummary\)/);
+  assert.match(fragment, /summaryTarget\.hidden = model\.changeSummary\.length === 0/);
+  assert.match(fragment, /if \(change\.additions !== 0\)/);
+  assert.match(fragment, /if \(change\.deletions !== 0\)/);
+  assert.match(fragment, /className = "fr-summary-badge-additions"/);
+  assert.match(fragment, /className = "fr-summary-badge-deletions"/);
+  assert.doesNotMatch(fragment, /fr-summary-(?:total|count)/);
   assert.doesNotMatch(fragment, /Structural review/i);
   assert.match(fragment, /<kbd>↑<\/kbd><kbd>↓<\/kbd> Navigate/);
   assert.match(fragment, /<kbd>←<\/kbd> Collapse/);
@@ -844,6 +925,7 @@ test("template contract rejects removal of required report controls and badges",
   const brokenTemplates = [
     ["keyboard shortcut legend", template.replace("<kbd>←</kbd> Collapse", "Collapse")],
     ["copy annotations control", template.replace("data-copy-annotations", "data-copy")],
+    ["top-only change summary badges", template.replace("for (const change of model.changeSummary)", "for (const change of [])")],
     ["prominent total count badge", template.replace('count.className = "fr-total-count"', 'count.className = "fr-count"')],
     ["addition and deletion figures", template.replace('deletions.textContent = `−${node.deletions}`', 'deletions.textContent = String(node.deletions)')],
     ["metadata divider", template.replace('divider.className = "fr-metadata-divider"', 'divider.className = "fr-divider"')],
