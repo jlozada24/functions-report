@@ -378,7 +378,7 @@ function validateSourceCollections(container, containerPath) {
           "signature",
           "proposal",
           ...optionalFields,
-          ...(kind === "callable" ? SOURCE_COLLECTION_NAMES : []),
+          ...(kind === "callable" ? ["isTest", ...SOURCE_COLLECTION_NAMES] : []),
         ],
         itemPath,
       );
@@ -392,6 +392,9 @@ function validateSourceCollections(container, containerPath) {
         }
       }
       if (kind === "callable") {
+        if (Object.hasOwn(item, "isTest") && typeof item.isTest !== "boolean") {
+          failInput(`${itemPath}.isTest`, "must be a boolean");
+        }
         sourceItemCount += validateSourceCollections(item, itemPath);
       }
     });
@@ -530,6 +533,7 @@ function cloneSourceItem(item, kind, order) {
     }
   }
   if (Object.hasOwn(item, "proposal")) result.proposal = item.proposal;
+  if (kind === "callable" && Object.hasOwn(item, "isTest")) result.isTest = item.isTest;
   if (kind === "callable") result.children = [];
   return result;
 }
@@ -734,7 +738,9 @@ function buildChangeSummary(tree) {
         visit(node.children);
         continue;
       }
-      const label = ITEM_KIND_LABEL_BY_SOURCE_KIND.get(node.kind);
+      const label = node.kind === "callable" && node.isTest === true
+        ? "Tests"
+        : ITEM_KIND_LABEL_BY_SOURCE_KIND.get(node.kind);
       if (label) incrementChange(itemKindChanges, label, node.proposal);
       if (node.children) visit(node.children);
     }
@@ -751,6 +757,10 @@ function buildChangeSummary(tree) {
   for (const label of ITEM_KIND_ORDER) {
     const changes = itemKindChanges.get(label);
     if (changes) summary.push({ kind: "item-kind", label, ...changes });
+    if (label === "Functions") {
+      const testChanges = itemKindChanges.get("Tests");
+      if (testChanges) summary.push({ kind: "item-kind", label: "Tests", ...testChanges });
+    }
   }
   return summary;
 }
@@ -852,6 +862,7 @@ function assignNodeIds(children, ancestors = [], breadcrumbParts = []) {
       if (Object.hasOwn(child, field)) result[field] = child[field];
     }
     if (child.proposal) result.proposal = child.proposal;
+    if (child.kind === "callable" && Object.hasOwn(child, "isTest")) result.isTest = child.isTest;
     const details = CALLABLE_DETAIL_FIELDS.flatMap(([field, label]) => {
       if (!Object.hasOwn(child, field)) return [];
       return [{

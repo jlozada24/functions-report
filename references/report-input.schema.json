@@ -99,6 +99,10 @@
           "$ref": "#/$defs/nonBlankText",
           "description": "Material source-supported return type or result shape, without the arrow prefix."
         },
+        "isTest": {
+          "type": "boolean",
+          "description": "Set true when source inspection identifies this callable as a test. Only the top change summary counts its proposal under Tests instead of Functions; tree appearance and counts are unchanged. Omitted or false means an ordinary callable."
+        },
         "description": {
           "$ref": "#/$defs/nonBlankText",
           "description": "Concise responsibility only when the signature is not self-explanatory."
