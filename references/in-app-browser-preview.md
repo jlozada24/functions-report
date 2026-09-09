@@ -41,7 +41,19 @@ Replace `<selected-port>` with the numeric port printed by the server. Do not us
 
 ## 3. Connect to the in-app browser
 
-The Browser plugin skill `browser:control-in-app-browser` must be available. Read its `SKILL.md` completely before browser work and follow its current bootstrap and recovery rules; do not improvise with Playwright CLI, Computer Use, `web.run`, or another browser-control surface.
+Pick the connection path from the host you are running on. Both paths drive the same in-app browser; neither is a substitute surface. Do not improvise with Playwright CLI, Computer Use, `web.run`, an external Chrome, or another browser-control surface.
+
+### Claude Code
+
+Claude Code exposes its in-app Browser pane directly as first-party `mcp__Claude_Browser__*` tools. Use them; the Browser plugin and `browser-client.mjs` are not required and are usually not installed. There is no bootstrap step and no documentation call to emit first.
+
+Open the pane straight at the loopback URL with `mcp__Claude_Browser__navigate` (it opens the pane when none is open), then verify with `mcp__Claude_Browser__read_page` and, when placement or glyph rendering matters, `mcp__Claude_Browser__computer` with `action: "screenshot"`.
+
+If `read_page` reports a `0x0` viewport or a click fails because a ref is outside the viewport, call `mcp__Claude_Browser__resize_window` with an explicit width and height, complete the verification, then reset it with `preset: "desktop"`. Skip to step 4's verification list; the `iab` bindings below do not apply.
+
+### Hosts with the Browser plugin
+
+The Browser plugin skill `browser:control-in-app-browser` must be available. Read its `SKILL.md` completely before browser work and follow its current bootstrap and recovery rules.
 
 Because this workflow explicitly targets the in-app browser, select `iab` directly. Do not call `getForUrl()`, `getDefault()`, or an external-browser selector. Through the Node JavaScript tool, import `scripts/browser-client.mjs` by its absolute path from the installed Browser plugin, then run:
 
@@ -58,7 +70,9 @@ Reuse an existing valid `iab` binding if one already exists in the current task.
 
 ## 4. Navigate and verify
 
-Using the APIs in the documentation just read, reuse a suitable in-app-browser tab or create one directly from `iab`, then navigate it to the exact loopback URL. The usual shape is:
+On Claude Code the `mcp__Claude_Browser__navigate` call in step 3 has already loaded the URL; go straight to the verification list below.
+
+With the Browser plugin, use the APIs in the documentation just read: reuse a suitable in-app-browser tab or create one directly from `iab`, then navigate it to the exact loopback URL. The usual shape is:
 
 ```js
 const tab = await iab.tabs.new();
@@ -81,8 +95,8 @@ Also take a screenshot when visual placement, color, wrapping, or glyph renderin
 ## 5. Recover without switching surfaces
 
 - If the server URL fails, first verify the long-running server session is still active, the absolute served directory is correct, and the URL uses the chosen port.
-- If browser setup succeeds but discovery or selection fails, follow the Browser skill's `bootstrap-troubleshooting` documentation before resetting anything.
-- If `iab` is unavailable, report that the in-app browser preview is unavailable and stop. Do not silently substitute Chrome, an external browser, Computer Use, or a Markdown report.
+- On the plugin path, if browser setup succeeds but discovery or selection fails, follow the Browser skill's `bootstrap-troubleshooting` documentation before resetting anything. On Claude Code there is no bootstrap to troubleshoot: re-run `mcp__Claude_Browser__navigate` against the verified loopback URL.
+- If neither the `mcp__Claude_Browser__*` tools nor `iab` is available, report that the in-app browser preview is unavailable and stop. Do not silently substitute Chrome, an external browser, Computer Use, or a Markdown report.
 - If a tab is stale, closed, or absent, get or create a fresh tab from the existing `iab` binding and navigate again.
 - If the tab shows `assets/report-template.html` or any other `file:` URL, it is not a valid preview. Generate a standalone document and navigate that tab to its verified loopback URL.
 - If the page is garbled or symbols are broken, regenerate with `--standalone`; do not patch the output HTML by hand.
@@ -101,6 +115,6 @@ After browser verification, return both required outputs in this order:
 
    Replace `<selected-port>` with the actual port. Never substitute a local `.html` filesystem link, a bare filename or path, or a `file:` URL. Return the same live URL that was successfully loaded and verified in the in-app browser; do not reuse a stale port or invent a URL from the output file's location.
 
-2. `JSON receipt:` followed by the exact `functions-report-input.json` receipt as a clickable local-file link. Also include its complete JSON contents in a fenced `json` block unless the user asks for only the file. Do not regenerate the receipt from the normalized model, scrape it from the rendered page, summarize it, or silently omit fields.
+2. `JSON receipt:` followed by the exact `functions-report-input.json` receipt as a clickable local-file link, and nothing else. Do not inline its contents in a fenced block, quote an excerpt, summarize it, or describe its fields; the link is the whole deliverable. Paste the contents only when the user asks for them in a later message. The receipt on disk must stay the byte-for-byte input the renderer consumed: never regenerate it from the normalized model, scrape it from the rendered page, or omit fields.
 
 The verified HTTP website URL and the unchanged input receipt are the two required outputs of this workflow.
