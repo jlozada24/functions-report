@@ -51,6 +51,8 @@ Open the pane straight at the loopback URL with `mcp__Claude_Browser__navigate` 
 
 If `read_page` reports a `0x0` viewport or a click fails because a ref is outside the viewport, call `mcp__Claude_Browser__resize_window` with an explicit width and height, complete the verification, then reset it with `preset: "desktop"`. Skip to step 4's verification list; the `iab` bindings below do not apply.
 
+The pane can be open while hidden, and `mcp__Claude_Browser__tabs_context` reports that. Before returning, put the report in front of the user yourself: call `mcp__Claude_Browser__tabs_select` on the report's tab whenever the pane is hidden or another tab is active. Do not rely on the user clicking the returned URL to see it — a clicked link opens in their operating system's default browser, not in the pane.
+
 ### Hosts with the Browser plugin
 
 The Browser plugin skill `browser:control-in-app-browser` must be available. Read its `SKILL.md` completely before browser work and follow its current bootstrap and recovery rules.
@@ -116,5 +118,7 @@ After browser verification, return both required outputs in this order:
    Replace `<selected-port>` with the actual port. Never substitute a local `.html` filesystem link, a bare filename or path, or a `file:` URL. Return the same live URL that was successfully loaded and verified in the in-app browser; do not reuse a stale port or invent a URL from the output file's location.
 
 2. `JSON receipt:` followed by the exact `functions-report-input.json` receipt as a clickable local-file link, and nothing else. Do not inline its contents in a fenced block, quote an excerpt, summarize it, or describe its fields; the link is the whole deliverable. Paste the contents only when the user asks for them in a later message. The receipt on disk must stay the byte-for-byte input the renderer consumed: never regenerate it from the normalized model, scrape it from the rendered page, or omit fields.
+
+On Claude Code, the report must already be loaded and fronted in the Browser pane before these outputs are returned; returning the URL is in addition to opening it, never instead of it. Return the clickable URL exactly as specified above in every case.
 
 The verified HTTP website URL and the unchanged input receipt are the two required outputs of this workflow.
